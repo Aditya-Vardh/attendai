@@ -1,0 +1,9 @@
+# Visual Verification Notes
+
+The current authenticated desktop workspace was checked after restart across Dashboard, Employees, Attendance, Leave, Analytics, Reports, AI Intelligence, and Audit Trail routes. The shell rendered with the intended indigo navigation system, responsive spacing, consistent cards and table treatments, and current database-backed seed data.
+
+The Dashboard showed 20 active development employees, 20 attendance records for the current seeded workday, 4 late arrivals, one pending leave request, and a 100% attendance rate. Employees, attendance, leave, analytics, reports, intelligence, and audit routes loaded successfully without visible module-resolution failures. The Intelligence workspace displayed the connected Copilot UI and anomaly scan control. Remaining verification will focus on automated action flows, dark/mobile visual treatment, and production scheduling after publication.
+
+The anomaly workflow was then executed against the labeled development dataset after a repeated-late-arrival pattern was introduced for a seed employee. The application persisted an anomaly with a live LLM-produced explanation, created in-app and email delivery records with `sent` status, and exposed the result to the Intelligence workspace. Mobile screenshots of the Dashboard and Intelligence routes also confirmed stacked KPI cards, a mobile navigation trigger, readable chat prompts, and an adaptive anomaly radar.
+
+The final desktop Intelligence verification showed the persisted medium-severity alert for the seeded repeated-late-arrival pattern, with the LLM’s factual explanation visible in the radar. Future explanations are constrained to concise plain text so the radar stays readable without formatting artifacts. The report route screenshot capture was unavailable in that capture batch, but it had previously loaded successfully during desktop route verification; static checks and the full unit-test suite passed after the final changes.

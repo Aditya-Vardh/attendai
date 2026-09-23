@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787029715619,
+      "tag": "0000_clever_wildside",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787030014863,
+      "tag": "0001_icy_young_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787031868935,
+      "tag": "0002_thick_steel_serpent",
+      "breakpoints": true
+    }
+  ]
+}
