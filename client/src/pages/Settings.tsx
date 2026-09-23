@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { trpc } from "@/lib/trpc";
-import { ShieldCheck, Users } from "lucide-react";
+import { Link2, RefreshCw, ShieldCheck, Users, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -26,6 +26,14 @@ export default function Settings() {
     onError: (err) => {
       toast.error(`Failed to update role: ${err.message}`);
     },
+  });
+
+  const relinkAllMutation = trpc.organization.users.relinkAll.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Re-linked ${data.linked} of ${data.total} users to employee profiles.`);
+      utils.organization.users.list.invalidate();
+    },
+    onError: (err) => toast.error(`Re-link failed: ${err.message}`),
   });
 
   const handleRoleChange = (userId: number, role: "admin" | "hr_manager" | "employee") => {
@@ -61,7 +69,7 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* Admin User Role Management Section */}
+        {/* Admin: User Role Management */}
         {user?.role === "admin" && (
           <section className="neu-card p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#D8D2BC] pb-4">
@@ -71,7 +79,7 @@ export default function Settings() {
                   <span>Workforce User & Role Management</span>
                 </div>
                 <p className="text-xs text-[#5C6B44] mt-1 font-medium">
-                  Promote or change user roles across the organization. Changes apply immediately to tRPC context and role-scoped permissions.
+                  Promote or change user roles across the organization. Changes apply immediately.
                 </p>
               </div>
               <Badge className="neu-badge-olive text-xs font-bold shrink-0 self-start sm:self-center">
@@ -116,39 +124,20 @@ export default function Settings() {
                         </td>
                         <td className="py-3 px-3 text-right">
                           <div className="inline-flex items-center gap-1.5 bg-[#EADFB4]/40 p-1 rounded-xl shadow-[inset_2px_2px_4px_#D8D2BC]">
-                            <button
-                              type="button"
-                              onClick={() => handleRoleChange(u.id, "employee")}
-                              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                u.role === "employee"
-                                  ? "bg-[#9CAB84] text-white shadow-[2px_2px_5px_#82916B]"
-                                  : "text-[#5C6B44] hover:text-[#364322]"
-                              }`}
-                            >
-                              Employee
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleRoleChange(u.id, "hr_manager")}
-                              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                u.role === "hr_manager"
-                                  ? "bg-[#9CAB84] text-white shadow-[2px_2px_5px_#82916B]"
-                                  : "text-[#5C6B44] hover:text-[#364322]"
-                              }`}
-                            >
-                              HR Manager
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleRoleChange(u.id, "admin")}
-                              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                u.role === "admin"
-                                  ? "bg-[#9CAB84] text-white shadow-[2px_2px_5px_#82916B]"
-                                  : "text-[#5C6B44] hover:text-[#364322]"
-                              }`}
-                            >
-                              Admin
-                            </button>
+                            {(["employee", "hr_manager", "admin"] as const).map((role) => (
+                              <button
+                                key={role}
+                                type="button"
+                                onClick={() => handleRoleChange(u.id, role)}
+                                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                                  u.role === role
+                                    ? "bg-[#9CAB84] text-white shadow-[2px_2px_5px_#82916B]"
+                                    : "text-[#5C6B44] hover:text-[#364322]"
+                                }`}
+                              >
+                                {role === "hr_manager" ? "HR" : role.charAt(0).toUpperCase() + role.slice(1)}
+                              </button>
+                            ))}
                           </div>
                         </td>
                       </tr>
@@ -160,6 +149,54 @@ export default function Settings() {
           </section>
         )}
 
+        {/* Admin: Data Repair Tools */}
+        {user?.role === "admin" && (
+          <section className="neu-card p-6 space-y-4">
+            <div className="flex items-center gap-2 text-base font-bold text-[#364322] border-b border-[#D8D2BC] pb-3">
+              <Wrench className="h-5 w-5 text-[#89986D]" />
+              <span>Data Repair & Sync Tools</span>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Re-link all users */}
+              <div className="neu-card-flat p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#364322]">
+                  <Link2 className="h-4 w-4 text-[#89986D]" />
+                  Re-Link All Users → Employees
+                </div>
+                <p className="text-xs text-[#5C6B44] font-medium leading-relaxed">
+                  Sweeps every user account and ensures their Clerk session is linked to an employee
+                  profile. Run this after manually adding an employee via the HR UI to immediately fix
+                  "not linked" errors without requiring a re-login.
+                </p>
+                <Button
+                  onClick={() => relinkAllMutation.mutate()}
+                  disabled={relinkAllMutation.isPending}
+                  className="mt-2 neu-button-primary text-xs h-9 px-5 flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${relinkAllMutation.isPending ? "animate-spin" : ""}`} />
+                  {relinkAllMutation.isPending ? "Re-linking…" : "Run Re-Link Now"}
+                </Button>
+              </div>
+
+              {/* Info panel */}
+              <div className="neu-inset p-4 space-y-2">
+                <p className="text-xs font-bold text-[#364322] uppercase tracking-wider">When to use these tools</p>
+                <ul className="text-xs text-[#5C6B44] font-medium space-y-1.5 list-disc list-inside leading-relaxed">
+                  <li>User sees "not linked to employee profile" on dashboard</li>
+                  <li>Check-in button is disabled even though HR added the employee</li>
+                  <li>New Clerk sign-up doesn't appear in Workforce Directory</li>
+                  <li>Employee code or job title looks malformed (e.g. all-lowercase, wrong initials)</li>
+                </ul>
+                <p className="text-[11px] text-[#89986D] font-semibold mt-2">
+                  To fix a specific employee's code/title — use the Edit button on that row in{" "}
+                  <a href="/employees" className="underline hover:text-[#364322]">Workforce Directory</a>.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Session Security Card */}
         <section className="neu-card p-6">
           <div className="flex items-start justify-between gap-4">
@@ -168,7 +205,8 @@ export default function Settings() {
                 <ShieldCheck className="h-4 w-4 text-[#89986D]" /> Session Security
               </div>
               <p className="mt-2 text-xs text-[#5C6B44] font-medium leading-relaxed">
-                Your authentication session is backed by Clerk Security and tRPC context. Signing out will end your session and clear active cookies.
+                Your authentication session is backed by Clerk Security and tRPC context. Signing out
+                will end your session and clear active cookies.
               </p>
             </div>
             <Button

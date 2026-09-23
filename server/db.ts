@@ -127,14 +127,62 @@ export async function getEmployeeForUser(userId: number) {
 
 export async function ensureEmployeeLink(user: User) {
   const db = await getDb();
-  if (!db || !user.email) return undefined;
-  const employee = (await db.select().from(employees).where(eq(employees.email, user.email)).limit(1))[0];
-  if (employee && !employee.userId) {
-    await db.update(employees).set({ userId: user.id }).where(eq(employees.id, employee.id));
-    return { ...employee, userId: user.id };
+  if (!db) return undefined;
+
+  // 1. Already linked by userId
+  const byUserId = (await db.select().from(employees).where(eq(employees.userId, user.id)).limit(1))[0];
+  if (byUserId) return byUserId;
+
+  // 2. Existing employee row with matching email — link it
+  if (user.email) {
+    const byEmail = (await db.select().from(employees).where(eq(employees.email, user.email)).limit(1))[0];
+    if (byEmail) {
+      await db.update(employees).set({ userId: user.id }).where(eq(employees.id, byEmail.id));
+      return { ...byEmail, userId: user.id };
+    }
   }
-  return employee;
+
+  // 3. Brand-new user with no employee row at all — auto-create one
+  if (user.email) {
+    const nameParts = (user.name ?? "New User").trim().split(/\s+/);
+    const firstName = nameParts[0] ?? "New";
+    const lastName = nameParts.slice(1).join(" ") || "User";
+    const fn = firstName.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+    const ln = lastName.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+    const employeeCode = `${fn}-${ln}-${Date.now().toString().slice(-6)}`;
+    const today = new Date().toISOString().slice(0, 10);
+
+    try {
+      const result = await db.insert(employees).values({
+        userId: user.id,
+        employeeCode,
+        firstName,
+        lastName,
+        email: user.email,
+        jobTitle: "New Hire",
+        joinedOn: today,
+        status: "active",
+        workdayStartMinute: 540,
+      });
+      const newEmployeeId = Number(result[0].insertId);
+      // Seed default leave balances
+      await db.insert(leaveBalances).values([
+        { employeeId: newEmployeeId, leaveType: "annual", allocatedDays: 20, usedDays: 0 },
+        { employeeId: newEmployeeId, leaveType: "sick", allocatedDays: 10, usedDays: 0 },
+        { employeeId: newEmployeeId, leaveType: "unpaid", allocatedDays: 0, usedDays: 0 },
+      ]);
+      console.log(`[Auth] Auto-created employee record for new user: ${user.email} (empId=${newEmployeeId})`);
+      return (await db.select().from(employees).where(eq(employees.id, newEmployeeId)).limit(1))[0];
+    } catch (err) {
+      // Duplicate email constraint — another record may have been created concurrently; try a final lookup
+      console.warn("[Auth] Employee auto-create collision, attempting fallback lookup:", err);
+      return (await db.select().from(employees).where(eq(employees.email, user.email)).limit(1))[0];
+    }
+  }
+
+  return undefined;
 }
+
 
 export async function createAuditEvent(input: {
   actorUserId?: number | null;

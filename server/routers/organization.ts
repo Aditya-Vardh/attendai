@@ -20,8 +20,10 @@ const employeeInput = z.object({
 });
 
 function buildEmployeeCode(firstName: string, lastName: string) {
-  const initials = `${firstName[0] ?? "E"}${lastName[0] ?? "A"}`.toUpperCase();
-  return `${initials}-${Date.now().toString().slice(-6)}`;
+  // e.g. "Leo Oel" → "LE-OE-741231" — two chars from each name + 6-digit timestamp suffix
+  const fn = firstName.trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+  const ln = lastName.trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+  return `${fn}-${ln}-${Date.now().toString().slice(-6)}`;
 }
 
 export const organizationRouter = router({
@@ -71,9 +73,26 @@ export const organizationRouter = router({
       const database = await db.getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
       if (input.departmentId) requireRecord((await database.select().from(departments).where(eq(departments.id, input.departmentId)).limit(1))[0], "Department not found.");
-      const matchedUser = (await database.select().from(users).where(eq(users.email, input.email)).limit(1))[0];
-      const result = await database.insert(employees).values({ ...input, employeeCode: buildEmployeeCode(input.firstName, input.lastName), userId: matchedUser?.id ?? null });
+
+      // Case-insensitive email match against users table
+      const allUsers = await database.select().from(users);
+      const matchedUser = allUsers.find(u => u.email?.toLowerCase().trim() === input.email.toLowerCase().trim());
+
+      const result = await database.insert(employees).values({
+        ...input,
+        employeeCode: buildEmployeeCode(input.firstName, input.lastName),
+        userId: matchedUser?.id ?? null,
+      });
       const employeeId = Number(result[0].insertId);
+
+      // If the matched user has a clerkId, store it on the employee row via users linkage —
+      // ensureEmployeeLink will pick it up on next request via userId fast-path
+      if (matchedUser?.clerkId && !matchedUser.clerkId.startsWith("demo_")) {
+        // clerkId is on the users table; the employees table links via userId which we just set
+        // Re-run ensureEmployeeLink to make the round-trip complete immediately
+        await db.ensureEmployeeLink({ ...matchedUser, id: matchedUser.id } as any);
+      }
+
       await database.insert(leaveBalances).values([
         { employeeId, leaveType: "annual", allocatedDays: 20, usedDays: 0 },
         { employeeId, leaveType: "sick", allocatedDays: 10, usedDays: 0 },
@@ -131,6 +150,36 @@ export const organizationRouter = router({
           metadata: { newRole: input.role },
         });
         return { success: true };
+      }),
+    /** Admin-only: re-run ensureEmployeeLink for every user to fix broken linkages without requiring re-login */
+    relinkAll: adminProcedure.mutation(async ({ ctx }) => {
+      const database = await db.getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
+      const allUsers = await database.select().from(users);
+      let linked = 0;
+      for (const u of allUsers) {
+        const result = await db.ensureEmployeeLink(u);
+        if (result) linked++;
+      }
+      await createAuditEvent({ actorUserId: ctx.user.id, action: "admin.relink_all", resourceType: "system", metadata: { linked } });
+      return { linked, total: allUsers.length };
+    }),
+    /** Admin-only: fix a specific employee row — regenerate clean code and capitalise job title */
+    repairEmployee: adminProcedure
+      .input(z.object({ employeeId: z.number().int().positive(), jobTitle: z.string().trim().min(1).max(120).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const database = await db.getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
+        const emp = (await database.select().from(employees).where(eq(employees.id, input.employeeId)).limit(1))[0];
+        if (!emp) throw new TRPCError({ code: "NOT_FOUND", message: "Employee not found." });
+        const fn = emp.firstName.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+        const ln = emp.lastName.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2).padEnd(2, "X");
+        const newCode = `${fn}-${ln}-${Date.now().toString().slice(-6)}`;
+        const newTitle = input.jobTitle
+          ?? (emp.jobTitle ? emp.jobTitle.charAt(0).toUpperCase() + emp.jobTitle.slice(1) : "Employee");
+        await database.update(employees).set({ employeeCode: newCode, jobTitle: newTitle }).where(eq(employees.id, input.employeeId));
+        await createAuditEvent({ actorUserId: ctx.user.id, action: "admin.repair_employee", resourceType: "employee", resourceId: input.employeeId });
+        return { employeeCode: newCode, jobTitle: newTitle };
       }),
   }),
 });

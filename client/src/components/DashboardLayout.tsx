@@ -167,42 +167,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <div className="border-t border-[#D8D2BC] pt-3">
-          <div
-            className={`flex items-center justify-between p-2.5 neu-card-flat ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <UserButton fallback={
-                <Avatar className="h-9 w-9 bg-[#9CAB84] text-white shadow-[2px_2px_6px_#D8D2BC]">
-                  <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-xs">
-                    {user?.name?.slice(0, 2).toUpperCase() ?? "AI"}
-                  </AvatarFallback>
-                </Avatar>
-              } />
-              {!collapsed && (
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-[#364322]">{user?.name ?? "Member"}</p>
-                  <p className="truncate text-[10px] font-bold text-[#89986D]">
-                    {roleLabel(user?.role)}
-                  </p>
-                </div>
-              )}
-            </div>
-
+        <div className="border-t border-[#D8D2BC] pt-3 space-y-2">
+          {/* User identity row */}
+          <div className={`flex items-center gap-3 px-2 ${collapsed ? "justify-center" : ""}`}>
+            <UserButton fallback={
+              <Avatar className="h-9 w-9 shrink-0 bg-[#9CAB84] text-white shadow-[2px_2px_6px_#D8D2BC]">
+                <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-xs">
+                  {user?.name?.slice(0, 2).toUpperCase() ?? "AI"}
+                </AvatarFallback>
+              </Avatar>
+            } />
             {!collapsed && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                title="Sign out"
-                className="h-8 w-8 text-[#5C6B44] hover:text-[#D9534F] hover:bg-rose-50 rounded-xl cursor-pointer"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-[#364322]">{user?.name ?? "Member"}</p>
+                <p className="truncate text-[10px] font-bold text-[#89986D]">
+                  {roleLabel(user?.role)}
+                </p>
+              </div>
             )}
           </div>
+
+          {/* Sign Out — always visible, labelled when expanded, icon+tooltip when collapsed */}
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  title="Sign out"
+                  className="w-full flex items-center justify-center h-10 rounded-2xl text-[#5C6B44] bg-[#F6F0D7] shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF] hover:text-[#D9534F] hover:shadow-[5px_5px_12px_#D8D2BC,-5px_-5px_12px_#FFFFFF] transition-all cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sign Out</TooltipContent>
+            </Tooltip>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 h-10 px-4 rounded-2xl text-xs font-bold text-[#5C6B44] bg-[#F6F0D7] shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF] hover:text-[#D9534F] hover:shadow-[5px_5px_12px_#D8D2BC,-5px_-5px_12px_#FFFFFF] transition-all cursor-pointer"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              Sign Out
+            </button>
+          )}
         </div>
       </div>
     </div>
