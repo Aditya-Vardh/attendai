@@ -22,7 +22,8 @@ export const anomalyStatuses = ["open", "acknowledged", "resolved"] as const;
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  clerkId: varchar("clerkId", { length: 255 }).unique(),
+  openId: varchar("openId", { length: 64 }),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),

@@ -3,10 +3,13 @@ import { COOKIE_NAME, UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
+import { ClerkProvider } from "@clerk/react";
 import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const queryClient = new QueryClient();
 
@@ -43,10 +46,6 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       headers() {
-        // Preview auto-login fallback: when the browser blocks iframe cookies
-        // (Safari ITP / private browsing / WebView), the runtime mirrors the
-        // session into sessionStorage so we can forward it as a Bearer token.
-        // The regular OAuth cookie flow keeps working and takes priority server-side.
         try {
           const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
@@ -57,9 +56,7 @@ const trpcClient = trpc.createClient({
               return { Authorization: `Bearer ${token}` };
             }
           }
-        } catch {
-          // sessionStorage unavailable
-        }
+        } catch {}
         return {};
       },
       fetch(input, init) {
@@ -72,10 +69,37 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+const clerkAppearance = {
+  elements: {
+    rootBox: "w-full flex justify-center",
+    cardBox: "w-full max-w-full shadow-none bg-transparent",
+    card: "bg-[#F6F0D7] shadow-[6px_6px_16px_#D8D2BC,-6px_-6px_16px_#FFFFFF] rounded-[24px] border-none text-[#364322] w-full max-w-full p-4 sm:p-6",
+    headerTitle: "text-[#364322] font-bold text-xl",
+    headerSubtitle: "text-[#5C6B44]",
+    socialButtonsBlockButton: "bg-[#F6F0D7] shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF] hover:shadow-[2px_2px_5px_#D8D2BC,-2px_-2px_5px_#FFFFFF] rounded-[16px] text-[#364322] border-none font-medium",
+    formButtonPrimary: "bg-[#9CAB84] text-white shadow-[4px_4px_10px_#82916B,-4px_-4px_10px_#B6C59D] hover:bg-[#89986D] rounded-[16px] border-none font-semibold",
+    formFieldInput: "bg-[#F6F0D7] shadow-[inset_3px_3px_8px_#D8D2BC,inset_-3px_-3px_8px_#FFFFFF] rounded-[14px] border-none text-[#364322] focus:ring-2 focus:ring-[#9CAB84]",
+    footerActionLink: "text-[#89986D] hover:text-[#364322] font-semibold",
+    footer: "bg-transparent border-none",
+    userButtonPopoverCard: "bg-[#F6F0D7] shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-[20px] border-none text-[#364322]",
+  },
+  variables: {
+    colorPrimary: "#9CAB84",
+    colorBackground: "#F6F0D7",
+    colorText: "#364322",
+    colorTextSecondary: "#5C6B44",
+    colorInputBackground: "#F6F0D7",
+    colorInputText: "#364322",
+    borderRadius: "1.25rem",
+  },
+};
+
 createRoot(document.getElementById("root")!).render(
-  <trpc.Provider client={trpcClient} queryClient={queryClient}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </trpc.Provider>
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY || ""} appearance={clerkAppearance}>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </trpc.Provider>
+  </ClerkProvider>
 );

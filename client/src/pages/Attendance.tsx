@@ -107,20 +107,20 @@ export default function Attendance() {
 
       {/* Employee Interactive Clocking Station Panel */}
       {isEmployee && (
-        <div className="relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/80 via-slate-900/90 to-[#0B0F19] p-7 shadow-2xl backdrop-blur-2xl">
+        <div className="neu-card p-7 text-[#364322]">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-indigo-300">
-                <Clock className="h-3.5 w-3.5 text-indigo-400" /> Attendance Clocking Station
+              <span className="inline-flex items-center gap-1.5 neu-badge-sage px-3.5 py-1 text-xs font-bold">
+                <Clock className="h-3.5 w-3.5 text-[#2C3917]" /> Attendance Clocking Station
               </span>
-              <h2 className="text-2xl font-black text-white sm:text-3xl">
+              <h2 className="text-2xl font-black text-[#364322] sm:text-3xl">
                 {today.data?.checkOutAt
                   ? "Workday Shift Completed"
                   : today.data?.checkInAt
                   ? "Currently Clocked In"
                   : "Not Clocked In Today"}
               </h2>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-[#5C6B44] font-medium">
                 {today.data?.checkInAt
                   ? `Check-in recorded at ${new Date(today.data.checkInAt).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -130,11 +130,11 @@ export default function Attendance() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl">
+            <div className="flex items-center gap-4 neu-inset p-4">
               {today.data?.checkInAt && !today.data?.checkOutAt && (
-                <div className="text-left pr-4 border-r border-white/10">
-                  <span className="text-[10px] font-bold uppercase text-indigo-300">Working Duration</span>
-                  <p className="text-xl font-black text-white font-mono">{elapsed}</p>
+                <div className="text-left pr-4 border-r border-[#D8D2BC]">
+                  <span className="text-[10px] font-bold uppercase text-[#89986D]">Working Duration</span>
+                  <p className="text-xl font-black text-[#364322] font-mono">{elapsed}</p>
                 </div>
               )}
 
@@ -142,7 +142,7 @@ export default function Attendance() {
                 <Button
                   onClick={() => clockIn.mutate()}
                   disabled={clockIn.isPending}
-                  className="rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold px-6 h-11"
+                  className="neu-button-primary px-6 h-11 text-sm"
                 >
                   <LogIn className="mr-2 h-4 w-4" />
                   {clockIn.isPending ? "Checking in…" : "Check In"}
@@ -153,7 +153,7 @@ export default function Attendance() {
                 <Button
                   onClick={() => clockOut.mutate()}
                   disabled={clockOut.isPending}
-                  className="rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold px-6 h-11"
+                  className="neu-button px-6 h-11 text-sm text-[#D9534F]"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   {clockOut.isPending ? "Checking out…" : "Check Out"}
@@ -164,17 +164,58 @@ export default function Attendance() {
         </div>
       )}
 
-      {/* Attendance History Table Card */}
-      <Card className="glass-card border-white/10">
+      {/* Attendance Calendar Heatmap Strip */}
+      <Card className="neu-card border-none">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-[#89986D]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#364322]">
+                14-Day Attendance Heatmap
+              </h3>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-bold text-[#5C6B44]">
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[#9CAB84]" /> Present</span>
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[#C5D89D]" /> Late</span>
+              <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[#D9534F]" /> Absent</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 sm:grid-cols-14 gap-2">
+            {(list.data?.items ?? []).slice(0, 14).map((item: any, idx: number) => {
+              const status = item.attendance.status;
+              const colorClass =
+                status === "present"
+                  ? "neu-badge-olive text-white"
+                  : status === "late"
+                  ? "neu-badge-sage text-[#2C3917]"
+                  : status === "absent"
+                  ? "bg-[#D9534F] text-white"
+                  : "neu-badge text-[#364322]";
+
+              return (
+                <div
+                  key={idx}
+                  className={`p-2.5 rounded-xl text-center font-mono text-[10px] space-y-1 shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF] ${colorClass}`}
+                >
+                  <p className="font-bold">{item.attendance.workDate.slice(5)}</p>
+                  <p className="capitalize text-[9px] font-sans font-bold opacity-90">{status.replace("_", " ")}</p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="neu-card border-none">
         <CardContent className="p-0">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-white/10">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-[#D8D2BC]/60">
             <div className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-500/20 text-indigo-300">
-                <CalendarClock className="h-4 w-4" />
+              <span className="grid h-9 w-9 place-items-center neu-badge-sage">
+                <CalendarClock className="h-4 w-4 text-[#2C3917]" />
               </span>
               <div>
-                <h3 className="text-sm font-bold text-white">Attendance Log</h3>
-                <p className="text-xs text-slate-400">Database attendance records and timestamps</p>
+                <h3 className="text-sm font-bold text-[#364322]">Attendance Log</h3>
+                <p className="text-xs text-[#5C6B44]">Database attendance records and timestamps</p>
               </div>
             </div>
 
@@ -185,10 +226,10 @@ export default function Attendance() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-40 rounded-xl border-white/10 bg-white/5 text-xs">
+              <SelectTrigger className="w-40 neu-input text-xs font-bold text-[#364322]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="present">Present</SelectItem>
                 <SelectItem value="late">Late</SelectItem>
@@ -201,35 +242,35 @@ export default function Attendance() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-slate-400 font-semibold text-xs">Date</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-xs">Employee</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-xs">Check In</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-xs">Check Out</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-xs">Working Hours</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-xs">Status</TableHead>
+                <TableRow className="border-[#D8D2BC]/40 hover:bg-transparent">
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Date</TableHead>
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Employee</TableHead>
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Check In</TableHead>
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Check Out</TableHead>
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Working Hours</TableHead>
+                  <TableHead className="text-[#5C6B44] font-bold text-xs">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-32 text-center text-xs text-slate-400">
+                    <TableCell colSpan={6} className="h-32 text-center text-xs text-[#5C6B44]">
                       Loading attendance records…
                     </TableCell>
                   </TableRow>
                 ) : list.data?.items.length ? (
                   list.data.items.map((row: any) => (
-                    <TableRow key={row.attendance.id} className="border-white/5 hover:bg-white/5">
-                      <TableCell className="font-mono text-xs text-white font-medium">
+                    <TableRow key={row.attendance.id} className="border-[#D8D2BC]/30 hover:bg-[#C5D89D]/20">
+                      <TableCell className="font-mono text-xs text-[#364322] font-bold">
                         {row.attendance.workDate}
                       </TableCell>
                       <TableCell>
-                        <p className="text-xs font-bold text-white">
+                        <p className="text-xs font-bold text-[#364322]">
                           {row.employee.firstName} {row.employee.lastName}
                         </p>
-                        <p className="text-[11px] text-slate-400">{row.departmentName ?? "Unassigned"}</p>
+                        <p className="text-[11px] text-[#5C6B44] font-medium">{row.departmentName ?? "Unassigned"}</p>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-300">
+                      <TableCell className="font-mono text-xs text-[#364322] font-semibold">
                         {row.attendance.checkInAt
                           ? new Date(row.attendance.checkInAt).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -237,7 +278,7 @@ export default function Attendance() {
                             })
                           : "—"}
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-300">
+                      <TableCell className="font-mono text-xs text-[#364322] font-semibold">
                         {row.attendance.checkOutAt
                           ? new Date(row.attendance.checkOutAt).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -245,7 +286,7 @@ export default function Attendance() {
                             })
                           : "—"}
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-300">
+                      <TableCell className="font-mono text-xs text-[#364322] font-semibold">
                         {row.attendance.workMinutes
                           ? `${Math.floor(row.attendance.workMinutes / 60)}h ${
                               row.attendance.workMinutes % 60
@@ -259,7 +300,7 @@ export default function Attendance() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-32 text-center text-xs text-slate-400">
+                    <TableCell colSpan={6} className="h-32 text-center text-xs text-[#5C6B44]">
                       No attendance records found for this filter.
                     </TableCell>
                   </TableRow>
@@ -269,13 +310,13 @@ export default function Attendance() {
           </div>
 
           {(list.data?.total ?? 0) > 12 && (
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-white/10">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-[#D8D2BC]/60">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="rounded-xl border-white/10 bg-white/5 text-xs"
+                className="neu-button text-xs px-4"
               >
                 Previous
               </Button>
@@ -284,7 +325,7 @@ export default function Attendance() {
                 size="sm"
                 disabled={(list.data?.items.length ?? 0) < 12}
                 onClick={() => setPage((p) => p + 1)}
-                className="rounded-xl border-white/10 bg-white/5 text-xs"
+                className="neu-button text-xs px-4"
               >
                 Next
               </Button>
@@ -298,15 +339,16 @@ export default function Attendance() {
 
 function StatusBadge({ value }: { value: string }) {
   const styles: Record<string, string> = {
-    present: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    late: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    absent: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-    half_day: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    present: "neu-badge-olive text-white font-bold",
+    late: "neu-badge-sage text-[#2C3917] font-bold",
+    absent: "bg-[#D9534F] text-white font-bold",
+    half_day: "neu-badge text-[#364322] font-bold",
   };
 
   return (
-    <Badge className={`${styles[value] ?? "bg-slate-500/20 text-slate-300"} capitalize text-[11px]`}>
+    <Badge className={`${styles[value] ?? "neu-badge text-[#364322]"} capitalize text-[11px] px-3 py-0.5`}>
       {value.replace("_", " ")}
     </Badge>
   );
 }
+

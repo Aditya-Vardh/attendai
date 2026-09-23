@@ -49,13 +49,17 @@ export const appRouter = router({
 
         await db.ensureEmployeeLink(userRow);
 
-        const sessionToken = await sdk.createSessionToken(userRow.openId, {
+        const sessionToken = await sdk.createSessionToken(userRow.openId || String(userRow.id), {
           name: userRow.name || "AttendAI User",
           expiresInMs: ONE_YEAR_MS,
         });
 
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        ctx.res.cookie("attendai_dev_role", input.role, {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
 
         return {
           success: true,
@@ -63,8 +67,7 @@ export const appRouter = router({
         };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie("attendai_dev_role", { path: "/" });
       return {
         success: true,
       } as const;

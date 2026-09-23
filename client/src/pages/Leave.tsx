@@ -115,20 +115,20 @@ export default function Leave() {
           {balances.data?.map((b: any) => {
             const remaining = b.allocatedDays - b.usedDays;
             return (
-              <Card key={b.id} className="glass-card border-white/10">
+              <Card key={b.id} className="neu-card border-none">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#5C6B44]">
                       {b.leaveType} Leave
                     </span>
-                    <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400">
-                      <CalendarDays className="h-4 w-4" />
+                    <span className="grid h-9 w-9 place-items-center neu-badge-sage">
+                      <CalendarDays className="h-4 w-4 text-[#2C3917]" />
                     </span>
                   </div>
-                  <p className="mt-3 text-3xl font-black text-white">
-                    {remaining} <span className="text-xs text-slate-400 font-normal">Days Left</span>
+                  <p className="mt-3 text-3xl font-black text-[#364322]">
+                    {remaining} <span className="text-xs text-[#5C6B44] font-bold">Days Left</span>
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-[#89986D] font-bold">
                     {b.usedDays} used of {b.allocatedDays} allocated
                   </p>
                 </CardContent>
@@ -139,52 +139,52 @@ export default function Leave() {
       )}
 
       {/* Leave Requests Table */}
-      <Card className="glass-card border-white/10">
+      <Card className="neu-card border-none">
         <CardContent className="p-0">
-          <div className="p-5 border-b border-white/10 flex items-center justify-between">
+          <div className="p-5 border-b border-[#D8D2BC]/60 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-purple-500/20 text-purple-300">
-                <FileClock className="h-4 w-4" />
+              <span className="grid h-9 w-9 place-items-center neu-badge-sage">
+                <FileClock className="h-4 w-4 text-[#2C3917]" />
               </span>
               <div>
-                <h3 className="text-sm font-bold text-white">Leave Application Timeline</h3>
-                <p className="text-xs text-slate-400">Auditable request timeline and manager decision notes</p>
+                <h3 className="text-sm font-bold text-[#364322]">Leave Application Timeline</h3>
+                <p className="text-xs text-[#5C6B44]">Auditable request timeline and manager decision notes</p>
               </div>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-white/10 bg-white/5 text-slate-400">
+              <thead className="border-b border-[#D8D2BC]/60 neu-card-flat text-[#5C6B44]">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Employee</th>
-                  <th className="px-5 py-3 font-semibold">Leave Type</th>
-                  <th className="px-5 py-3 font-semibold">Duration</th>
-                  <th className="px-5 py-3 font-semibold">Reason</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 text-right font-semibold">Action</th>
+                  <th className="px-5 py-3.5 font-bold">Employee</th>
+                  <th className="px-5 py-3.5 font-bold">Leave Type</th>
+                  <th className="px-5 py-3.5 font-bold">Duration</th>
+                  <th className="px-5 py-3.5 font-bold">Reason</th>
+                  <th className="px-5 py-3.5 font-bold">Status</th>
+                  <th className="px-5 py-3.5 text-right font-bold">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-slate-200">
+              <tbody className="divide-y divide-[#D8D2BC]/40 text-[#364322]">
                 {list.isLoading ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                    <td colSpan={6} className="p-8 text-center text-[#5C6B44] font-medium">
                       Loading leave applications…
                     </td>
                   </tr>
                 ) : list.data?.items.length ? (
                   list.data.items.map((row: any) => (
-                    <tr key={row.request.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-5 py-4 font-bold text-white">
+                    <tr key={row.request.id} className="hover:bg-[#C5D89D]/20 transition-colors">
+                      <td className="px-5 py-4 font-bold text-[#364322]">
                         {row.employee.firstName} {row.employee.lastName}
                       </td>
-                      <td className="px-5 py-4 capitalize font-medium text-indigo-300">
+                      <td className="px-5 py-4 capitalize font-bold text-[#89986D]">
                         {row.request.leaveType}
                       </td>
-                      <td className="px-5 py-4 font-mono text-slate-300">
+                      <td className="px-5 py-4 font-mono font-semibold text-[#364322]">
                         {row.request.startDate} → {row.request.endDate}
                       </td>
-                      <td className="px-5 py-4 max-w-xs truncate text-slate-400">
+                      <td className="px-5 py-4 max-w-xs truncate text-[#5C6B44] font-medium">
                         {row.request.reason}
                       </td>
                       <td className="px-5 py-4">
@@ -198,7 +198,7 @@ export default function Leave() {
                               setDecisionTarget(row.request);
                               setDecisionReason("");
                             }}
-                            className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3"
+                            className="neu-button-primary text-xs px-4 h-9 py-1"
                           >
                             Review Request
                           </Button>
@@ -207,19 +207,19 @@ export default function Leave() {
                             variant="ghost"
                             size="sm"
                             onClick={() => cancelMutation.mutate({ id: row.request.id })}
-                            className="text-rose-400 hover:text-rose-300 text-xs"
+                            className="text-[#D9534F] hover:bg-rose-50 text-xs font-bold cursor-pointer"
                           >
                             Cancel
                           </Button>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-[#5C6B44] font-bold">—</span>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                    <td colSpan={6} className="p-8 text-center text-[#5C6B44] font-medium">
                       No leave requests recorded yet.
                     </td>
                   </tr>
@@ -232,22 +232,22 @@ export default function Leave() {
 
       {/* Request Leave Dialog */}
       <Dialog open={openRequestModal} onOpenChange={setOpenRequestModal}>
-        <DialogContent className="max-w-md border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+        <DialogContent className="max-w-md border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Submit Leave Request</DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
+            <DialogTitle className="text-lg font-bold text-[#364322]">Submit Leave Request</DialogTitle>
+            <DialogDescription className="text-xs text-[#5C6B44] font-medium">
               Applications are automatically routed to HR Managers for review.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-2 text-xs">
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Leave Type</Label>
+              <Label className="text-[#364322] font-bold">Leave Type</Label>
               <Select value={leaveType} onValueChange={(val: any) => setLeaveType(val)}>
-                <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-xs">
+                <SelectTrigger className="neu-input text-xs font-bold text-[#364322]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                   <SelectItem value="annual">Annual Leave</SelectItem>
                   <SelectItem value="sick">Sick Leave</SelectItem>
                   <SelectItem value="unpaid">Unpaid Leave</SelectItem>
@@ -257,32 +257,32 @@ export default function Leave() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-slate-300">Start Date</Label>
+                <Label className="text-[#364322] font-bold">Start Date</Label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="rounded-xl border-white/10 bg-white/5 text-xs"
+                  className="neu-input text-xs font-semibold"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-slate-300">End Date</Label>
+                <Label className="text-[#364322] font-bold">End Date</Label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="rounded-xl border-white/10 bg-white/5 text-xs"
+                  className="neu-input text-xs font-semibold"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Reason / Explanation</Label>
+              <Label className="text-[#364322] font-bold">Reason / Explanation</Label>
               <Textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Explain the purpose of this leave request for your manager…"
-                className="rounded-xl border-white/10 bg-white/5 text-xs min-h-[90px]"
+                className="neu-input text-xs min-h-[90px] p-3 font-medium"
               />
             </div>
           </div>
@@ -291,14 +291,14 @@ export default function Leave() {
             <Button
               variant="outline"
               onClick={() => setOpenRequestModal(false)}
-              className="rounded-xl border-white/10 bg-white/5 text-xs"
+              className="neu-button text-xs px-5"
             >
               Cancel
             </Button>
             <Button
               disabled={!startDate || !endDate || reason.length < 5 || requestMutation.isPending}
               onClick={handleSubmitRequest}
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5"
+              className="neu-button-primary text-xs px-6"
             >
               {requestMutation.isPending ? "Submitting…" : "Submit Application"}
             </Button>
@@ -308,29 +308,29 @@ export default function Leave() {
 
       {/* Review & Decide Dialog */}
       <Dialog open={!!decisionTarget} onOpenChange={() => setDecisionTarget(null)}>
-        <DialogContent className="max-w-md border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+        <DialogContent className="max-w-md border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Review Leave Application</DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
+            <DialogTitle className="text-lg font-bold text-[#364322]">Review Leave Application</DialogTitle>
+            <DialogDescription className="text-xs text-[#5C6B44] font-medium">
               Provide a decision reason. The employee will receive an instant in-app notification.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-2 text-xs">
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-              <p className="font-bold text-white">{decisionTarget?.reason}</p>
-              <p className="text-[11px] text-slate-400">
+            <div className="p-3.5 neu-inset space-y-1">
+              <p className="font-bold text-[#364322]">{decisionTarget?.reason}</p>
+              <p className="text-[11px] text-[#5C6B44] font-semibold">
                 {decisionTarget?.startDate} to {decisionTarget?.endDate} • {decisionTarget?.leaveType}
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Decision Explanation</Label>
+              <Label className="text-[#364322] font-bold">Decision Explanation</Label>
               <Textarea
                 value={decisionReason}
                 onChange={(e) => setDecisionReason(e.target.value)}
                 placeholder="e.g. Approved based on available annual leave balance."
-                className="rounded-xl border-white/10 bg-white/5 text-xs min-h-[80px]"
+                className="neu-input text-xs min-h-[80px] p-3 font-medium"
               />
             </div>
           </div>
@@ -346,7 +346,7 @@ export default function Leave() {
                   reason: decisionReason,
                 })
               }
-              className="rounded-xl border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs flex-1"
+              className="neu-button text-[#D9534F] text-xs flex-1"
             >
               <X className="mr-1 h-3.5 w-3.5" /> Reject Request
             </Button>
@@ -360,7 +360,7 @@ export default function Leave() {
                   reason: decisionReason,
                 })
               }
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex-1"
+              className="neu-button-primary text-xs flex-1"
             >
               <Check className="mr-1 h-3.5 w-3.5" /> Approve Request
             </Button>
@@ -373,15 +373,16 @@ export default function Leave() {
 
 function LeaveStatusBadge({ value }: { value: string }) {
   const styles: Record<string, string> = {
-    pending: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    approved: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    rejected: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-    cancelled: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+    pending: "neu-badge text-[#364322] font-bold",
+    approved: "neu-badge-olive text-white font-bold",
+    rejected: "bg-[#D9534F] text-white font-bold",
+    cancelled: "neu-badge text-[#5C6B44] font-bold",
   };
 
   return (
-    <Badge className={`${styles[value] ?? "bg-slate-500/20 text-slate-300"} capitalize text-[11px]`}>
+    <Badge className={`${styles[value] ?? "neu-badge text-[#364322]"} capitalize text-[11px] px-3 py-0.5`}>
       {value}
     </Badge>
   );
 }
+

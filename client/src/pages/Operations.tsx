@@ -52,7 +52,7 @@ export function Analytics() {
           title="Organization Analytics"
           description="Company-wide analytics are restricted to HR Managers and Administrators."
         />
-        <div className="p-8 text-center rounded-3xl border border-white/10 bg-slate-900/40 text-slate-400 text-xs">
+        <div className="p-8 text-center neu-inset text-[#5C6B44] text-xs font-bold">
           Your personal attendance insights are available on your Attendance page.
         </div>
       </div>
@@ -69,14 +69,14 @@ export function Analytics() {
 
       <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
         {/* 30-Day Pulse Chart */}
-        <Card className="glass-card border-white/10">
+        <Card className="neu-card border-none">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">30-Day Attendance Movement</h3>
-                <p className="text-xs text-slate-400">Present vs. late arrival trends across all shifts</p>
+                <h3 className="text-base font-bold text-[#364322]">30-Day Attendance Movement</h3>
+                <p className="text-xs text-[#5C6B44]">Present vs. late arrival trends across all shifts</p>
               </div>
-              <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30">Live Database</Badge>
+              <Badge className="neu-badge-sage text-xs font-bold">Live Database</Badge>
             </div>
 
             <div className="mt-6 h-72">
@@ -84,30 +84,31 @@ export function Analytics() {
                 <AreaChart data={trend.data ?? []}>
                   <defs>
                     <linearGradient id="analyticsFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0.01} />
+                      <stop offset="0%" stopColor="#9CAB84" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#9CAB84" stopOpacity={0.01} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" hide />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#0B0F19",
-                      borderColor: "rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                      color: "#fff",
+                      backgroundColor: "#F6F0D7",
+                      borderColor: "#D8D2BC",
+                      borderRadius: "16px",
+                      color: "#364322",
+                      boxShadow: "6px 6px 14px #D8D2BC, -6px -6px 14px #FFFFFF",
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="present"
-                    stroke="#6366f1"
+                    stroke="#9CAB84"
                     fill="url(#analyticsFill)"
-                    strokeWidth={2.5}
+                    strokeWidth={3}
                   />
                   <Area
                     type="monotone"
                     dataKey="late"
-                    stroke="#f59e0b"
+                    stroke="#D9534F"
                     fill="transparent"
                     strokeWidth={2}
                   />
@@ -118,10 +119,10 @@ export function Analytics() {
         </Card>
 
         {/* Department Coverage */}
-        <Card className="glass-card border-white/10">
+        <Card className="neu-card border-none">
           <CardContent className="p-6">
-            <h3 className="text-base font-bold text-white">Department Coverage Ratios</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Active employee attendance ratio per department</p>
+            <h3 className="text-base font-bold text-[#364322]">Department Coverage Ratios</h3>
+            <p className="text-xs text-[#5C6B44] font-medium mt-0.5">Active employee attendance ratio per department</p>
 
             <div className="mt-6 space-y-4">
               {department.data?.length ? (
@@ -131,22 +132,22 @@ export function Analytics() {
                     : 0;
                   return (
                     <div key={row.id} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-white">{row.name}</span>
-                        <span className="text-indigo-300">{percent}%</span>
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-[#364322]">{row.name}</span>
+                        <span className="text-[#89986D]">{percent}%</span>
                       </div>
-                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-2.5 rounded-full neu-inset overflow-hidden p-0.5">
                         <div
                           style={{ width: `${Math.min(percent, 100)}%` }}
-                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400"
+                          className="h-full rounded-full bg-[#9CAB84]"
                         />
                       </div>
-                      <p className="text-[11px] text-slate-400">{row.employeeCount} active headcount</p>
+                      <p className="text-[11px] text-[#5C6B44] font-medium">{row.employeeCount} active headcount</p>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-xs text-slate-500">No department coverage metrics yet.</p>
+                <p className="text-xs text-[#5C6B44]">No department coverage metrics yet.</p>
               )}
             </div>
           </CardContent>
@@ -256,11 +257,11 @@ export function Reports() {
 
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     doc.setFontSize(18);
-    doc.setTextColor(15, 23, 42);
+    doc.setTextColor(54, 67, 34);
     doc.text("AttendAI Workforce Executive Report", 40, 50);
 
     doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139);
+    doc.setTextColor(92, 107, 68);
     doc.text(
       `Report Type: ${reportType.replaceAll("_", " ")} | Generated: ${new Date().toLocaleString()}`,
       40,
@@ -277,7 +278,7 @@ export function Reports() {
         doc.addPage();
         cursor = 50;
       }
-      doc.setTextColor(30, 41, 59);
+      doc.setTextColor(54, 67, 34);
       doc.text(splitLines, 40, cursor);
       cursor += splitLines.length * 12 + 6;
     });
@@ -295,28 +296,28 @@ export function Reports() {
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         {/* Generator Panel */}
-        <Card className="glass-card border-white/10">
+        <Card className="neu-card border-none">
           <CardContent className="p-6 space-y-5">
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                <FileBarChart className="h-5 w-5" />
+              <span className="grid h-10 w-10 place-items-center neu-badge-sage">
+                <FileBarChart className="h-5 w-5 text-[#2C3917]" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-white">Generate Executive Report</h3>
-                <p className="text-xs text-slate-400">Recorded in audit logs with exact filter payloads</p>
+                <h3 className="text-base font-bold text-[#364322]">Generate Executive Report</h3>
+                <p className="text-xs text-[#5C6B44]">Recorded in audit logs with exact filter payloads</p>
               </div>
             </div>
 
             <div className="space-y-2 pt-2">
-              <label className="text-xs font-semibold text-slate-300">Select Report Type</label>
+              <label className="text-xs font-bold text-[#364322]">Select Report Type</label>
               <Select
                 value={reportType}
                 onValueChange={(val: any) => setReportType(val)}
               >
-                <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-xs">
+                <SelectTrigger className="neu-input text-xs font-bold text-[#364322]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                   <SelectItem value="daily_attendance">Daily Attendance Report</SelectItem>
                   <SelectItem value="monthly_attendance">Monthly Attendance Summary</SelectItem>
                   <SelectItem value="employee_attendance">Employee Performance Report</SelectItem>
@@ -331,42 +332,40 @@ export function Reports() {
             <Button
               onClick={() => generateMutation.mutate({ reportType, filters: {} })}
               disabled={generateMutation.isPending}
-              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs h-11 shadow-lg shadow-indigo-600/30"
+              className="w-full neu-button-primary text-xs h-11"
             >
               {generateMutation.isPending ? "Generating AI Summary…" : "Generate From Database Records"}
             </Button>
 
             {/* Generated Report Summary Panel */}
             {generatedReport && (
-              <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-slate-900/60 p-5 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                  <Sparkles className="h-4 w-4 text-indigo-400" /> AI Executive Summary
+              <div className="neu-card-sage p-5 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#2C3917] uppercase tracking-wider">
+                  <Sparkles className="h-4 w-4 text-[#2C3917]" /> AI Executive Summary
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white/5 text-xs text-slate-200 space-y-1 font-medium">
+                <div className="p-3.5 neu-card-sage-inset text-xs text-[#2C3917] space-y-1 font-medium">
                   <p>
-                    <span className="font-bold text-white">{generatedReport.summary.totalRecords}</span> total records evaluated •{" "}
-                    <span className="font-bold text-amber-400">{generatedReport.summary.lateRecords}</span> late •{" "}
-                    <span className="font-bold text-rose-400">{generatedReport.summary.absentRecords}</span> absent
+                    <span className="font-bold">{generatedReport.summary.totalRecords}</span> total records evaluated •{" "}
+                    <span className="font-bold">{generatedReport.summary.lateRecords}</span> late •{" "}
+                    <span className="font-bold">{generatedReport.summary.absentRecords}</span> absent
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={exportCsv}
                     disabled={!generatedReport.rows.length}
-                    className="rounded-xl border-white/10 bg-white/5 text-xs text-slate-200 flex-1"
+                    className="neu-button-sage text-xs text-[#2C3917] flex-1 py-2"
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={exportPdf}
                     disabled={!generatedReport.rows.length}
-                    className="rounded-xl border-white/10 bg-white/5 text-xs text-slate-200 flex-1"
+                    className="neu-button-sage text-xs text-[#2C3917] flex-1 py-2"
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" /> Export PDF
                   </Button>
@@ -377,38 +376,38 @@ export function Reports() {
         </Card>
 
         {/* Generation History */}
-        <Card className="glass-card border-white/10">
+        <Card className="neu-card border-none">
           <CardContent className="p-6">
-            <h3 className="text-base font-bold text-white">Report Generation History</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Auditable log of past generated executive reports</p>
+            <h3 className="text-base font-bold text-[#364322]">Report Generation History</h3>
+            <p className="text-xs text-[#5C6B44] font-medium mt-0.5">Auditable log of past generated executive reports</p>
 
             <div className="mt-5 space-y-3">
               {history.isLoading ? (
-                <p className="text-xs text-slate-400">Loading history…</p>
+                <p className="text-xs text-[#5C6B44]">Loading history…</p>
               ) : history.data?.items.length ? (
                 history.data.items.map((item: any) => {
                   const summary = JSON.parse(item.summaryJson || "{}");
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-3.5 rounded-2xl border border-white/5 bg-white/5 text-xs"
+                      className="flex items-center justify-between p-3.5 neu-card-flat text-xs"
                     >
                       <div>
-                        <p className="font-bold text-white capitalize">
+                        <p className="font-bold text-[#364322] capitalize">
                           {item.reportType.replaceAll("_", " ")}
                         </p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-[#5C6B44] font-medium">
                           {summary.totalRecords ?? 0} records • {new Date(item.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30">
+                      <Badge className="neu-badge-sage text-[#2C3917] font-bold">
                         #{item.id}
                       </Badge>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-xs text-slate-500">No reports generated yet.</p>
+                <p className="text-xs text-[#5C6B44]">No reports generated yet.</p>
               )}
             </div>
           </CardContent>
@@ -504,12 +503,12 @@ export function Intelligence() {
         {/* Futuristic AI Copilot Drawer */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-md">
-              <Bot className="h-5 w-5" />
+            <span className="grid h-10 w-10 place-items-center neu-badge-sage">
+              <Bot className="h-5 w-5 text-[#2C3917]" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-white">Workforce Copilot</h3>
-              <p className="text-xs text-slate-400">
+              <h3 className="text-base font-bold text-[#364322]">Workforce Copilot</h3>
+              <p className="text-xs text-[#5C6B44] font-medium">
                 Connected to role-scoped application tools • Answers from verified data only
               </p>
             </div>
@@ -520,7 +519,7 @@ export function Intelligence() {
             onSendMessage={handleSendMessage}
             isLoading={askMutation.isPending}
             height="580px"
-            className="rounded-3xl border-indigo-500/30 bg-[#0B0F19]"
+            className="neu-card border-none"
             placeholder="Ask about attendance rates, department coverage, or leave patterns…"
             emptyStateMessage="Ask any authorized question about your workforce attendance, trends, or leave activity."
             suggestedPrompts={
@@ -539,19 +538,19 @@ export function Intelligence() {
         </div>
 
         {/* Anomaly Radar Feed */}
-        <Card className="glass-card border-white/10">
+        <Card className="neu-card border-none">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Anomaly Radar</h3>
-                <p className="text-xs text-slate-400">Deterministic pattern alerts with LLM explanations</p>
+                <h3 className="text-base font-bold text-[#364322]">Anomaly Radar</h3>
+                <p className="text-xs text-[#5C6B44] font-medium">Deterministic pattern alerts with LLM explanations</p>
               </div>
 
               <Select value={severity} onValueChange={setSeverity}>
-                <SelectTrigger className="w-28 rounded-xl border-white/10 bg-white/5 text-xs h-8">
+                <SelectTrigger className="w-28 neu-input text-xs font-bold text-[#364322] h-9">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                   <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -562,15 +561,15 @@ export function Intelligence() {
 
             <div className="space-y-3 pt-1">
               {anomalies.isLoading ? (
-                <p className="text-xs text-slate-400">Loading AI signals…</p>
+                <p className="text-xs text-[#5C6B44]">Loading AI signals…</p>
               ) : anomalies.data?.length ? (
                 anomalies.data.map((row: any) => (
                   <div
                     key={row.anomaly.id}
-                    className="p-4 rounded-2xl border border-white/10 bg-white/5 space-y-2 text-xs"
+                    className="p-4 neu-card-flat space-y-2 text-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-[#364322]">
                         {row.employee
                           ? `${row.employee.firstName} ${row.employee.lastName}`
                           : row.departmentName ?? "Organization"}
@@ -578,20 +577,19 @@ export function Intelligence() {
                       <SeverityBadge value={row.anomaly.severity} />
                     </div>
 
-                    <p className="text-[11px] text-indigo-300 font-mono">
+                    <p className="text-[11px] text-[#89986D] font-mono font-bold">
                       {row.anomaly.ruleCode.replaceAll("_", " ")} • {row.anomaly.confidencePercent}% confidence
                     </p>
 
-                    <p className="text-slate-300 leading-relaxed">{row.anomaly.explanation}</p>
+                    <p className="text-[#364322] leading-relaxed font-medium">{row.anomaly.explanation}</p>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[11px]">
-                      <span className="text-slate-400 capitalize">Status: {row.anomaly.status}</span>
+                    <div className="flex items-center justify-between pt-2 border-t border-[#D8D2BC]/60 text-[11px]">
+                      <span className="text-[#5C6B44] capitalize font-semibold">Status: {row.anomaly.status}</span>
                       {!isEmployee && row.anomaly.status === "open" && (
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => acknowledgeMutation.mutate({ id: row.anomaly.id })}
-                          className="rounded-xl border-white/10 bg-white/5 text-[11px] h-7 px-3"
+                          className="neu-button text-[11px] h-7 px-3 cursor-pointer"
                         >
                           Acknowledge
                         </Button>
@@ -600,7 +598,7 @@ export function Intelligence() {
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-slate-500">No anomaly signals open.</p>
+                <p className="text-xs text-[#5C6B44]">No anomaly signals open.</p>
               )}
             </div>
           </CardContent>
@@ -612,14 +610,14 @@ export function Intelligence() {
 
 function SeverityBadge({ value }: { value: string }) {
   const styles: Record<string, string> = {
-    low: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-    medium: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    high: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-    critical: "bg-red-600/30 text-red-200 border-red-500/40 font-bold",
+    low: "neu-badge text-[#364322]",
+    medium: "neu-badge-sage text-[#2C3917] font-bold",
+    high: "bg-[#D9534F] text-white font-bold",
+    critical: "bg-red-700 text-white font-black",
   };
 
   return (
-    <Badge className={`${styles[value] ?? "bg-slate-500/20 text-slate-300"} capitalize text-[10px]`}>
+    <Badge className={`${styles[value] ?? "neu-badge text-[#364322]"} capitalize text-[10px] px-2.5 py-0.5`}>
       {value}
     </Badge>
   );
@@ -640,46 +638,46 @@ export function Audit() {
         description="Immutable record of sensitive workforce actions, report generations, and system configuration modifications."
       />
 
-      <Card className="glass-card border-white/10">
+      <Card className="neu-card border-none">
         <CardContent className="p-0">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+          <div className="p-4 border-b border-[#D8D2BC]/60 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-[#89986D] text-xs font-extrabold">
               <ShieldCheck className="h-4 w-4" /> SECURE AUDIT LOG
             </div>
             <div className="relative w-full max-w-xs">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#89986D]" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search action or resource…"
-                className="pl-9 rounded-xl border-white/10 bg-white/5 text-xs h-9"
+                className="pl-9 neu-input text-xs h-9 font-medium"
               />
             </div>
           </div>
 
-          <div className="divide-y divide-white/5 text-xs">
+          <div className="divide-y divide-[#D8D2BC]/40 text-xs">
             {list.isLoading ? (
-              <p className="p-8 text-center text-slate-400">Loading audit log events…</p>
+              <p className="p-8 text-center text-[#5C6B44] font-medium">Loading audit log events…</p>
             ) : list.data?.items.length ? (
               list.data.items.map((item: any) => (
                 <div
                   key={item.log.id}
-                  className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:bg-white/5 transition-colors"
+                  className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:bg-[#C5D89D]/20 transition-colors"
                 >
                   <div>
-                    <p className="font-bold text-white">{item.log.action.replaceAll(".", " • ")}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                    <p className="font-bold text-[#364322]">{item.log.action.replaceAll(".", " • ")}</p>
+                    <p className="text-[11px] text-[#5C6B44] font-medium mt-0.5">
                       Actor: {item.actorName ?? item.actorEmail ?? "System"} • Resource: {item.log.resourceType}
                       {item.log.resourceId ? ` #${item.log.resourceId}` : ""}
                     </p>
                   </div>
-                  <span className="font-mono text-[11px] text-slate-400">
+                  <span className="font-mono text-[11px] text-[#89986D] font-bold">
                     {new Date(item.log.createdAt).toLocaleString()}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="p-8 text-center text-slate-500">No audit events match your search.</p>
+              <p className="p-8 text-center text-[#5C6B44] font-medium">No audit events match your search.</p>
             )}
           </div>
         </CardContent>
@@ -687,3 +685,4 @@ export function Audit() {
     </div>
   );
 }
+

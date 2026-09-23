@@ -55,6 +55,70 @@ export async function getUserByOpenId(openId: string) {
   return (await db.select().from(users).where(eq(users.openId, openId)).limit(1))[0];
 }
 
+export async function getUserByClerkId(clerkId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1))[0];
+}
+
+export async function upsertClerkUser(input: {
+  clerkId: string;
+  email?: string | null;
+  name?: string | null;
+  role?: "admin" | "hr_manager" | "employee";
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  let existing = await getUserByClerkId(input.clerkId);
+  const emailLower = input.email?.toLowerCase().trim();
+
+  if (!existing && emailLower) {
+    const allUsers = await db.select().from(users);
+    existing = allUsers.find(u => u.email?.toLowerCase().trim() === emailLower);
+
+    if (existing) {
+      await db.update(users).set({ clerkId: input.clerkId, lastSignedIn: new Date() }).where(eq(users.id, existing.id));
+      existing = { ...existing, clerkId: input.clerkId };
+      await ensureEmployeeLink(existing);
+      return existing;
+    }
+  }
+
+  if (existing) {
+    await db.update(users).set({
+      name: input.name ?? existing.name,
+      email: input.email ?? existing.email,
+      lastSignedIn: new Date(),
+    }).where(eq(users.id, existing.id));
+    const updated = (await db.select().from(users).where(eq(users.id, existing.id)).limit(1))[0];
+    if (updated) await ensureEmployeeLink(updated);
+    return updated;
+  }
+
+  let role: "admin" | "hr_manager" | "employee" = input.role ?? "employee";
+  if (emailLower) {
+    if (emailLower.includes("admin") || emailLower === "alex.vance@attendai.com") {
+      role = "admin";
+    } else if (emailLower.includes("hr") || emailLower === "sarah.jenkins@attendai.com") {
+      role = "hr_manager";
+    }
+  }
+
+  await db.insert(users).values({
+    clerkId: input.clerkId,
+    openId: input.clerkId,
+    email: input.email ?? null,
+    name: input.name ?? null,
+    role: role,
+    lastSignedIn: new Date(),
+  });
+  
+  const created = await getUserByClerkId(input.clerkId);
+  if (created) await ensureEmployeeLink(created);
+  return created;
+}
+
 export async function getEmployeeForUser(userId: number) {
   const db = await getDb();
   if (!db) return undefined;

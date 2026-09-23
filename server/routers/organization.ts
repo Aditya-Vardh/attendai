@@ -106,5 +106,32 @@ export const organizationRouter = router({
       return { success: true };
     }),
   }),
+  users: router({
+    list: adminProcedure.query(async () => {
+      const database = await db.getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
+      return database.select().from(users);
+    }),
+    updateRole: adminProcedure
+      .input(
+        z.object({
+          userId: z.number().int().positive(),
+          role: z.enum(["admin", "hr_manager", "employee"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const database = await db.getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
+        await database.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
+        await createAuditEvent({
+          actorUserId: ctx.user.id,
+          action: "user.role_updated",
+          resourceType: "user",
+          resourceId: input.userId,
+          metadata: { newRole: input.role },
+        });
+        return { success: true };
+      }),
+  }),
 });
 

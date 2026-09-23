@@ -27,18 +27,22 @@ function Workspace({ children, roles }: { children: React.ReactNode; roles?: App
   }, [denied, setLocation, user]);
   if (loading || denied)
     return (
-      <div className="grid min-h-screen place-items-center bg-[#070913]">
+      <div className="grid min-h-screen place-items-center bg-[#F6F0D7]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
-          <span className="text-xs font-semibold text-slate-400">Authenticating AttendAI workspace…</span>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#9CAB84]/30 border-t-[#89986D]" />
+          <span className="text-xs font-semibold text-[#5C6B44]">Authenticating AttendAI workspace…</span>
         </div>
       </div>
     );
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 
+
+
 function Router() { return <Switch>
-  <Route path="/" component={Home}/>
+  <Route path="/"><Home /></Route>
+  <Route path="/login"><Home initialAuthOpen={true} /></Route>
+  <Route path="/register"><Home initialAuthOpen={true} /></Route>
   <Route path="/dashboard"><Workspace><Dashboard/></Workspace></Route>
   <Route path="/employees"><Workspace roles={["admin", "hr_manager"]}><Employees/></Workspace></Route>
   <Route path="/departments"><Workspace roles={["admin", "hr_manager"]}><Departments/></Workspace></Route>
@@ -50,7 +54,7 @@ function Router() { return <Switch>
   <Route path="/reports"><Workspace roles={["admin", "hr_manager"]}><Reports/></Workspace></Route>
   <Route path="/intelligence"><Workspace><Intelligence/></Workspace></Route>
   <Route path="/audit"><Workspace roles={["admin"]}><Audit/></Workspace></Route>
-  <Route path="/404" component={NotFound}/><Route component={NotFound}/>
+  <Route path="/404"><NotFound/></Route><Route><NotFound/></Route>
 </Switch>; }
 
 export default function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster richColors position="top-right"/><Router/></TooltipProvider></ThemeProvider></ErrorBoundary>; }

@@ -169,9 +169,9 @@ export default function Employees() {
       />
 
       {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-xl">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 neu-card">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#89986D]" />
           <Input
             value={search}
             onChange={(e) => {
@@ -179,7 +179,7 @@ export default function Employees() {
               setPage(1);
             }}
             placeholder="Search by name, email, or employee code…"
-            className="pl-10 rounded-2xl border-white/10 bg-white/5 text-sm"
+            className="pl-10 neu-input text-xs font-medium"
           />
         </div>
 
@@ -191,10 +191,10 @@ export default function Employees() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44 rounded-2xl border-white/10 bg-white/5 text-xs">
+            <SelectTrigger className="w-44 neu-input text-xs font-bold text-[#364322]">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
               <SelectItem value="all">All Departments</SelectItem>
               {departments.data?.map((dept: any) => (
                 <SelectItem key={dept.department.id} value={String(dept.department.id)}>
@@ -211,17 +211,17 @@ export default function Employees() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-32 rounded-2xl border-white/10 bg-white/5 text-xs">
+            <SelectTrigger className="w-32 neu-input text-xs font-bold text-[#364322]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
 
-          <span className="text-xs text-slate-400 font-mono hidden md:inline">
+          <span className="text-xs text-[#5C6B44] font-mono font-bold hidden md:inline">
             {list.data?.total ?? 0} Records
           </span>
         </div>
@@ -231,7 +231,7 @@ export default function Employees() {
       {list.isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-56 rounded-3xl bg-white/5" />
+            <Skeleton key={i} className="h-56 rounded-3xl bg-[#D8D2BC]/40" />
           ))}
         </div>
       ) : list.data?.items.length ? (
@@ -242,72 +242,72 @@ export default function Employees() {
             return (
               <Card
                 key={emp.id}
-                className="glass-card glass-card-interactive border-white/10 overflow-hidden flex flex-col justify-between"
+                className="neu-card neu-card-interactive border-none overflow-hidden flex flex-col justify-between"
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12 border border-indigo-500/30">
+                      <Avatar className="h-12 w-12 bg-[#9CAB84] text-white shadow-[3px_3px_8px_#D8D2BC]">
                         <AvatarImage src={emp.avatarUrl ?? ""} />
-                        <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">
+                        <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-sm">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="text-base font-bold text-white">
+                        <h3 className="text-base font-bold text-[#364322]">
                           {emp.firstName} {emp.lastName}
                         </h3>
-                        <p className="text-xs text-indigo-300 font-mono">{emp.employeeCode}</p>
+                        <p className="text-xs text-[#89986D] font-mono font-bold">{emp.employeeCode}</p>
                       </div>
                     </div>
 
                     <Badge
                       className={
                         emp.status === "active"
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                          : "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                          ? "neu-badge-sage text-[#2C3917] font-bold"
+                          : "neu-badge text-[#5C6B44] font-bold"
                       }
                     >
                       {emp.status}
                     </Badge>
                   </div>
 
-                  <div className="mt-5 space-y-2 text-xs text-slate-300 border-t border-white/10 pt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400 flex items-center gap-1.5">
-                        <Shield className="h-3.5 w-3.5 text-indigo-400" /> Job Title:
+                  <div className="mt-5 space-y-2.5 text-xs text-[#364322] border-t border-[#D8D2BC]/60 pt-4">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-[#5C6B44] flex items-center gap-1.5">
+                        <Shield className="h-3.5 w-3.5 text-[#89986D]" /> Job Title:
                       </span>
-                      <span className="font-medium text-white">{emp.jobTitle}</span>
+                      <span className="font-bold text-[#364322]">{emp.jobTitle}</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400 flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-cyan-400" /> Department:
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-[#5C6B44] flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-[#89986D]" /> Department:
                       </span>
-                      <span className="font-medium text-white">
+                      <span className="font-bold text-[#364322]">
                         {row.departmentName ?? "Unassigned"}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400 flex items-center gap-1.5">
-                        <Mail className="h-3.5 w-3.5 text-purple-400" /> Email:
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-[#5C6B44] flex items-center gap-1.5">
+                        <Mail className="h-3.5 w-3.5 text-[#89986D]" /> Email:
                       </span>
-                      <span className="font-mono text-slate-300 truncate max-w-[180px]">
+                      <span className="font-mono text-[#364322] truncate max-w-[180px]">
                         {emp.email}
                       </span>
                     </div>
                   </div>
                 </CardContent>
 
-                <div className="border-t border-white/10 p-3 bg-white/5 flex items-center justify-between">
+                <div className="border-t border-[#D8D2BC]/60 p-3 flex items-center justify-between">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setDetailEmployee(row)}
-                    className="text-xs text-slate-300 hover:text-white"
+                    className="text-xs font-bold text-[#364322] hover:text-[#89986D] cursor-pointer"
                   >
-                    <Eye className="mr-1.5 h-3.5 w-3.5" /> View Workspace
+                    <Eye className="mr-1.5 h-3.5 w-3.5 text-[#89986D]" /> View Profile
                   </Button>
 
                   <div className="flex items-center gap-1">
@@ -315,7 +315,7 @@ export default function Employees() {
                       variant="ghost"
                       size="sm"
                       onClick={() => openEdit(emp)}
-                      className="text-xs text-indigo-300 hover:text-indigo-200"
+                      className="text-xs text-[#89986D] hover:text-[#364322] cursor-pointer"
                     >
                       <Edit3 className="h-3.5 w-3.5" />
                     </Button>
@@ -330,8 +330,8 @@ export default function Employees() {
                       }
                       className={
                         emp.status === "active"
-                          ? "text-rose-400 hover:text-rose-300"
-                          : "text-emerald-400 hover:text-emerald-300"
+                          ? "text-[#D9534F] hover:bg-rose-50 cursor-pointer"
+                          : "text-[#89986D] hover:bg-emerald-50 cursor-pointer"
                       }
                     >
                       {emp.status === "active" ? (
@@ -347,8 +347,8 @@ export default function Employees() {
           })}
         </div>
       ) : (
-        <div className="p-12 text-center rounded-3xl border border-dashed border-white/10 bg-slate-900/40">
-          <p className="text-sm font-semibold text-slate-400">
+        <div className="p-12 text-center neu-inset">
+          <p className="text-sm font-bold text-[#5C6B44]">
             No employee profiles match your search criteria.
           </p>
         </div>
@@ -362,17 +362,17 @@ export default function Employees() {
             size="sm"
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-xl border-white/10 bg-white/5 text-xs"
+            className="neu-button text-xs px-4"
           >
             Previous
           </Button>
-          <span className="text-xs font-mono text-slate-400">Page {page}</span>
+          <span className="text-xs font-mono font-bold text-[#5C6B44]">Page {page}</span>
           <Button
             variant="outline"
             size="sm"
             disabled={(list.data?.items.length ?? 0) < 9}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-xl border-white/10 bg-white/5 text-xs"
+            className="neu-button text-xs px-4"
           >
             Next
           </Button>
@@ -394,56 +394,56 @@ export default function Employees() {
       {/* Employee Workspace Detail Modal */}
       {detailEmployee && (
         <Dialog open={!!detailEmployee} onOpenChange={() => setDetailEmployee(null)}>
-          <DialogContent className="max-w-xl border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+          <DialogContent className="max-w-xl border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold flex items-center gap-3">
-                <Avatar className="h-10 w-10 border border-indigo-500/30">
+                <Avatar className="h-10 w-10 bg-[#9CAB84] text-white">
                   <AvatarImage src={detailEmployee.employee.avatarUrl ?? ""} />
-                  <AvatarFallback className="bg-indigo-600 text-white font-bold">
+                  <AvatarFallback className="bg-[#9CAB84] text-white font-bold">
                     {detailEmployee.employee.firstName[0]}
                     {detailEmployee.employee.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p>
+                  <p className="text-[#364322]">
                     {detailEmployee.employee.firstName} {detailEmployee.employee.lastName}
                   </p>
-                  <p className="text-xs text-indigo-300 font-mono font-normal">
+                  <p className="text-xs text-[#89986D] font-mono font-bold">
                     {detailEmployee.employee.employeeCode}
                   </p>
                 </div>
               </DialogTitle>
             </DialogHeader>
 
-            <div className="mt-4 space-y-4 text-xs text-slate-300 border-t border-white/10 pt-4">
-              <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl">
+            <div className="mt-4 space-y-4 text-xs text-[#364322] border-t border-[#D8D2BC]/60 pt-4">
+              <div className="grid grid-cols-2 gap-4 neu-inset p-4">
                 <div>
-                  <span className="text-slate-400 block">Job Title</span>
-                  <span className="text-sm font-bold text-white">{detailEmployee.employee.jobTitle}</span>
+                  <span className="text-[#5C6B44] block font-bold">Job Title</span>
+                  <span className="text-sm font-bold text-[#364322]">{detailEmployee.employee.jobTitle}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Department</span>
-                  <span className="text-sm font-bold text-indigo-300">
+                  <span className="text-[#5C6B44] block font-bold">Department</span>
+                  <span className="text-sm font-bold text-[#89986D]">
                     {detailEmployee.departmentName ?? "Unassigned"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Email Address</span>
-                  <span className="font-mono text-slate-200">{detailEmployee.employee.email}</span>
+                  <span className="text-[#5C6B44] block font-bold">Email Address</span>
+                  <span className="font-mono text-[#364322] font-semibold">{detailEmployee.employee.email}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Phone</span>
-                  <span className="font-mono text-slate-200">
+                  <span className="text-[#5C6B44] block font-bold">Phone</span>
+                  <span className="font-mono text-[#364322] font-semibold">
                     {detailEmployee.employee.phone ?? "Not provided"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Joining Date</span>
-                  <span className="font-mono text-slate-200">{detailEmployee.employee.joinedOn}</span>
+                  <span className="text-[#5C6B44] block font-bold">Joining Date</span>
+                  <span className="font-mono text-[#364322] font-semibold">{detailEmployee.employee.joinedOn}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Workday Start</span>
-                  <span className="font-mono text-slate-200">
+                  <span className="text-[#5C6B44] block font-bold">Workday Start</span>
+                  <span className="font-mono text-[#364322] font-semibold">
                     {String(Math.floor(detailEmployee.employee.workdayStartMinute / 60)).padStart(2, "0")}
                     :
                     {String(detailEmployee.employee.workdayStartMinute % 60).padStart(2, "0")} AM
@@ -456,7 +456,7 @@ export default function Employees() {
               <Button
                 variant="outline"
                 onClick={() => setDetailEmployee(null)}
-                className="rounded-xl border-white/10 bg-white/5 text-xs"
+                className="neu-button text-xs px-5"
               >
                 Close Profile Workspace
               </Button>
@@ -479,25 +479,25 @@ function MyEmployeeWorkspace() {
         description="Your verified organization employee record, placement, and shift schedule."
       />
 
-      <div className="max-w-2xl rounded-3xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur-xl">
+      <div className="max-w-2xl neu-card p-8 text-[#364322]">
         {me.isLoading ? (
-          <p className="text-sm text-slate-400">Loading your profile record…</p>
+          <p className="text-sm text-[#5C6B44]">Loading your profile record…</p>
         ) : me.data ? (
           <div className="space-y-6">
-            <div className="flex items-center gap-4 border-b border-white/10 pb-6">
-              <Avatar className="h-16 w-16 border-2 border-indigo-500/30">
+            <div className="flex items-center gap-4 border-b border-[#D8D2BC]/60 pb-6">
+              <Avatar className="h-16 w-16 bg-[#9CAB84] text-white">
                 <AvatarImage src={me.data.avatarUrl ?? ""} />
-                <AvatarFallback className="bg-indigo-600 text-white font-bold text-lg">
+                <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-lg">
                   {me.data.firstName[0]}
                   {me.data.lastName[0]}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-[#364322]">
                   {me.data.firstName} {me.data.lastName}
                 </h3>
-                <p className="text-xs text-indigo-300 font-mono">{me.data.employeeCode}</p>
-                <p className="text-xs text-slate-400 mt-1">{me.data.jobTitle}</p>
+                <p className="text-xs text-[#89986D] font-mono font-bold">{me.data.employeeCode}</p>
+                <p className="text-xs text-[#5C6B44] font-semibold mt-1">{me.data.jobTitle}</p>
               </div>
             </div>
 
@@ -514,7 +514,7 @@ function MyEmployeeWorkspace() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-[#5C6B44]">
             Your user account is not linked to an employee record yet.
           </p>
         )}
@@ -525,9 +525,9 @@ function MyEmployeeWorkspace() {
 
 function ProfileItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-4 rounded-2xl border border-white/5 bg-white/5">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    <div className="p-4 neu-card-flat">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C6B44]">{label}</span>
+      <p className="mt-1 text-sm font-bold text-[#364322]">{value}</p>
     </div>
   );
 }
@@ -547,12 +547,12 @@ function EmployeeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+      <DialogContent className="max-w-xl border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+          <DialogTitle className="text-xl font-bold text-[#364322]">
             {editing ? "Update Employee Profile" : "Create New Employee"}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-400">
+          <DialogDescription className="text-xs text-[#5C6B44] font-medium">
             Server validates input schemas and automatically provisions default leave allocations.
           </DialogDescription>
         </DialogHeader>
@@ -566,12 +566,12 @@ function EmployeeDialog({
           <Field label="Joining Date" type="date" value={form.joinedOn} onChange={(v) => set("joinedOn", v)} />
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-slate-300">Department</Label>
+            <Label className="text-xs font-bold text-[#364322]">Department</Label>
             <Select value={form.departmentId} onValueChange={(v) => set("departmentId", v)}>
-              <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-xs">
+              <SelectTrigger className="neu-input text-xs font-bold text-[#364322]">
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                 <SelectItem value="none">Unassigned</SelectItem>
                 {departments.map((row: any) => (
                   <SelectItem key={row.department.id} value={String(row.department.id)}>
@@ -594,14 +594,14 @@ function EmployeeDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border-white/10 bg-white/5 text-xs"
+            className="neu-button text-xs px-5"
           >
             Cancel
           </Button>
           <Button
             disabled={busy}
             onClick={onSubmit}
-            className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5"
+            className="neu-button-primary text-xs px-6"
           >
             {busy ? "Saving…" : editing ? "Save Changes" : "Create Profile"}
           </Button>
@@ -624,13 +624,14 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-slate-300">{label}</Label>
+      <Label className="text-xs font-bold text-[#364322]">{label}</Label>
       <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-xl border-white/10 bg-white/5 text-xs"
+        className="neu-input text-xs font-medium"
       />
     </div>
   );
 }
+

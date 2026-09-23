@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+import { UserButton, useClerk } from "@clerk/react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -54,9 +56,18 @@ function roleLabel(role?: string) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const clerk = useClerk();
   const [location, setLocation] = useLocation();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("attendai-sidebar") === "collapsed");
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await clerk.signOut();
+    } catch {}
+    await logout();
+    setLocation("/");
+  };
 
   const notifications = trpc.notifications.list.useQuery(
     { page: 1, pageSize: 1, unreadOnly: true },
@@ -72,20 +83,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col justify-between p-3.5">
+    <div className="flex h-full flex-col justify-between p-3.5 bg-[#F6F0D7]">
       <div>
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 px-3">
           <Link
             href="/dashboard"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 text-white font-black shadow-lg shadow-indigo-500/25"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#9CAB84] text-white font-black shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF]"
           >
-            <span className="text-lg">A</span>
+            <span className="text-xl">A</span>
           </Link>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-extrabold tracking-tight text-white text-base">AttendAI</p>
-              <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+              <p className="font-extrabold tracking-tight text-[#364322] text-lg">AttendAI</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-[#89986D]">
                 Workforce Intel
               </p>
             </div>
@@ -93,9 +104,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Nav Items */}
-        <nav className="mt-4 space-y-1">
+        <nav className="mt-4 space-y-2">
           {!collapsed && (
-            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#89986D]">
               Navigation
             </p>
           )}
@@ -107,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <>
                   <item.icon
                     className={`h-[18px] w-[18px] shrink-0 ${
-                      active ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                      active ? "text-white" : "text-[#5C6B44] group-hover:text-[#364322]"
                     }`}
                   />
                   {!collapsed && <span className="truncate">{item.label}</span>}
@@ -119,10 +130,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => setLocation(item.path)}
-                      className={`group flex h-11 w-full items-center gap-3.5 rounded-2xl px-3.5 text-xs font-semibold transition-all duration-200 ${
+                      className={`group flex h-11 w-full items-center gap-3.5 rounded-2xl px-3.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                         active
-                          ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-600/25 font-bold"
-                          : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                          ? "bg-[#9CAB84] text-white shadow-[5px_5px_12px_#82916B,-5px_-5px_12px_#B6C59D]"
+                          : "text-[#364322] hover:bg-[#C5D89D]/40 shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF]"
                       } ${collapsed ? "justify-center px-0" : ""}`}
                     >
                       {contents}
@@ -139,39 +150,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Footer Area: Copilot Card & User Profile */}
       <div className="space-y-3">
         {!collapsed && (
-          <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/60 to-purple-950/40 p-3.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
-              <Bot className="h-4 w-4 text-indigo-400" />
+          <div className="neu-card-sage p-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#2C3917]">
+              <Bot className="h-4 w-4 text-[#2C3917]" />
               <span>Workforce Copilot</span>
             </div>
-            <p className="mt-1 text-[11px] leading-relaxed text-slate-300">
+            <p className="mt-1.5 text-[11px] leading-relaxed text-[#384A1E] font-medium">
               Ask workforce questions in natural language.
             </p>
             <Button
               onClick={() => setLocation("/intelligence")}
-              className="mt-3 w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs h-8"
+              className="mt-3 w-full neu-button-primary text-xs h-9 py-1"
             >
               Open Copilot
             </Button>
           </div>
         )}
 
-        <div className="border-t border-white/10 pt-3">
+        <div className="border-t border-[#D8D2BC] pt-3">
           <div
-            className={`flex items-center justify-between p-2 rounded-2xl bg-white/5 border border-white/5 ${
+            className={`flex items-center justify-between p-2.5 neu-card-flat ${
               collapsed ? "justify-center" : ""
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <Avatar className="h-9 w-9 border border-indigo-500/30">
-                <AvatarFallback className="bg-indigo-600 text-white font-bold text-xs">
-                  {user?.name?.slice(0, 2).toUpperCase() ?? "AI"}
-                </AvatarFallback>
-              </Avatar>
+              <UserButton fallback={
+                <Avatar className="h-9 w-9 bg-[#9CAB84] text-white shadow-[2px_2px_6px_#D8D2BC]">
+                  <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-xs">
+                    {user?.name?.slice(0, 2).toUpperCase() ?? "AI"}
+                  </AvatarFallback>
+                </Avatar>
+              } />
               {!collapsed && (
                 <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-white">{user?.name ?? "Member"}</p>
-                  <p className="truncate text-[10px] font-semibold text-indigo-300">
+                  <p className="truncate text-xs font-bold text-[#364322]">{user?.name ?? "Member"}</p>
+                  <p className="truncate text-[10px] font-bold text-[#89986D]">
                     {roleLabel(user?.role)}
                   </p>
                 </div>
@@ -182,9 +195,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={logout}
+                onClick={handleLogout}
                 title="Sign out"
-                className="h-8 w-8 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl"
+                className="h-8 w-8 text-[#5C6B44] hover:text-[#D9534F] hover:bg-rose-50 rounded-xl cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -196,19 +209,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="min-h-screen bg-[#070913] text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-[#F6F0D7] text-[#364322]">
       {/* Mobile Overlay */}
       {mobileOpen && (
         <button
           aria-label="Close menu"
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[#364322]/30 backdrop-blur-xs lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Desktop Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 hidden flex-col border-r border-white/10 bg-[#0B0F19]/90 backdrop-blur-2xl transition-[width] duration-300 lg:flex ${
+        className={`fixed inset-y-0 left-0 z-50 hidden flex-col bg-[#F6F0D7] shadow-[8px_0_20px_#D8D2BC] transition-[width] duration-300 lg:flex ${
           collapsed ? "w-[80px]" : "w-[270px]"
         }`}
       >
@@ -216,20 +229,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <button
           aria-label="Toggle sidebar"
           onClick={() => setCollapsed((v) => !v)}
-          className="absolute -right-3 top-20 grid h-6 w-6 place-items-center rounded-full border border-white/10 bg-[#0B0F19] text-slate-300 shadow-md hover:text-indigo-400 transition-transform hover:scale-110"
+          className="absolute -right-3.5 top-20 grid h-7 w-7 place-items-center rounded-full bg-[#F6F0D7] text-[#364322] shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF] hover:text-[#89986D] transition-transform hover:scale-110 cursor-pointer"
         >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </aside>
 
       {/* Mobile Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-white/10 bg-[#0B0F19] transition-transform duration-300 lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col bg-[#F6F0D7] shadow-[10px_0_30px_#D8D2BC] transition-transform duration-300 lg:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="absolute right-3 top-4">
-          <Button size="icon" variant="ghost" onClick={() => setMobileOpen(false)} className="text-slate-400">
+          <Button size="icon" variant="ghost" onClick={() => setMobileOpen(false)} className="text-[#364322]">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -243,12 +256,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }`}
       >
         {/* Header Bar */}
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/10 bg-[#070913]/80 px-6 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-[#F6F0D7]/90 px-6 shadow-[0_4px_16px_#D8D2BC] backdrop-blur-md">
           <div className="flex items-center gap-4 flex-1">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-slate-300"
+              className="lg:hidden text-[#364322]"
               onClick={() => setMobileOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -256,26 +269,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden max-w-md flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-left text-xs transition-colors hover:border-indigo-500/40 md:flex"
+              className="hidden max-w-md flex-1 items-center gap-2 neu-input px-4 py-2.5 text-left text-xs text-[#364322] md:flex cursor-pointer"
             >
-              <Search className="h-4 w-4 text-slate-400" />
-              <span className="flex-1 text-slate-400">Search employees, departments, or reports…</span>
-              <kbd className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-slate-400">
+              <Search className="h-4 w-4 text-[#89986D]" />
+              <span className="flex-1 text-[#5C6B44] font-medium">Search employees, departments, or reports…</span>
+              <kbd className="rounded-md neu-badge px-2 py-0.5 text-[10px] font-mono text-[#364322]">
                 ⌘K
               </kbd>
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setLocation("/notifications")}
-              className="relative text-slate-300 hover:text-white rounded-xl"
+              className="relative neu-button h-10 w-10 text-[#364322]"
             >
               <Bell className="h-4 w-4" />
               {(notifications.data?.unread ?? 0) > 0 && (
-                <Badge className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 p-0 text-[9px] font-bold text-white">
+                <Badge className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#D9534F] p-0 text-[10px] font-bold text-white shadow-md">
                   {notifications.data?.unread}
                 </Badge>
               )}
@@ -284,7 +297,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Button
               size="sm"
               onClick={() => setLocation("/intelligence")}
-              className="hidden sm:flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-semibold text-xs px-4 h-9 shadow-md shadow-indigo-600/20"
+              className="hidden sm:flex items-center gap-2 neu-button-primary text-xs px-5 h-10"
             >
               <Bot className="h-4 w-4" /> Ask Copilot
             </Button>
@@ -292,7 +305,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Viewport Workspace Container */}
-        <div className="mx-auto max-w-[1600px] p-6 lg:p-8">{children}</div>
+        <div className="mx-auto max-w-[1600px] p-6 lg:p-8">
+          <motion.div
+            key={location}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </div>
 
         <GlobalSearch />
       </main>

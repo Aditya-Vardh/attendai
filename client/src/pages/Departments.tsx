@@ -113,7 +113,7 @@ export default function Departments() {
           title="Department Operations"
           description="Department management is reserved for HR Managers and Administrators."
         />
-        <div className="p-8 text-center rounded-3xl border border-white/10 bg-slate-900/40 text-slate-400 text-xs">
+        <div className="p-8 text-center neu-inset text-[#5C6B44] text-xs font-bold">
           You do not have administrative permissions for department configuration.
         </div>
       </div>
@@ -132,18 +132,18 @@ export default function Departments() {
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {list.isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-56 animate-pulse rounded-3xl bg-white/5" />
+            <div key={i} className="h-56 animate-pulse rounded-3xl bg-[#D8D2BC]/40" />
           ))
         ) : list.data?.length ? (
           list.data.map((row: any) => (
             <Card
               key={row.department.id}
-              className="glass-card glass-card-interactive border-white/10 flex flex-col justify-between"
+              className="neu-card neu-card-interactive border-none flex flex-col justify-between"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
-                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    <Building2 className="h-5 w-5" />
+                  <span className="grid h-11 w-11 place-items-center neu-badge-sage">
+                    <Building2 className="h-5 w-5 text-[#2C3917]" />
                   </span>
 
                   <div className="flex items-center gap-1">
@@ -151,7 +151,7 @@ export default function Departments() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(row)}
-                      className="text-xs text-indigo-300 hover:text-white"
+                      className="text-xs text-[#89986D] hover:text-[#364322] cursor-pointer"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -160,7 +160,7 @@ export default function Departments() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeleteCandidate(row.department)}
-                        className="text-xs text-rose-400 hover:text-rose-300"
+                        className="text-xs text-[#D9534F] hover:bg-rose-50 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -168,33 +168,33 @@ export default function Departments() {
                   </div>
                 </div>
 
-                <h3 className="mt-4 text-lg font-bold text-white">{row.department.name}</h3>
-                <p className="text-xs font-mono font-semibold uppercase tracking-wider text-indigo-400">
+                <h3 className="mt-4 text-lg font-bold text-[#364322]">{row.department.name}</h3>
+                <p className="text-xs font-mono font-bold uppercase tracking-wider text-[#89986D]">
                   {row.department.code}
                 </p>
 
-                <p className="mt-3 text-xs text-slate-300 min-h-[36px] leading-relaxed">
+                <p className="mt-3 text-xs text-[#5C6B44] min-h-[36px] leading-relaxed font-medium">
                   {row.department.description ?? "No description provided."}
                 </p>
 
-                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Department Head:</span>
-                  <span className="font-semibold text-indigo-300">
+                <div className="mt-4 pt-4 border-t border-[#D8D2BC]/60 flex items-center justify-between text-xs">
+                  <span className="text-[#5C6B44] font-bold">Department Head:</span>
+                  <span className="font-bold text-[#89986D]">
                     {row.headEmployeeName ?? "Unassigned"}
                   </span>
                 </div>
               </CardContent>
 
-              <div className="border-t border-white/10 p-3.5 bg-white/5 flex items-center justify-between text-xs text-slate-300">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Users className="h-4 w-4 text-cyan-400" /> Active Headcount
+              <div className="border-t border-[#D8D2BC]/60 p-3.5 neu-card-flat flex items-center justify-between text-xs text-[#364322]">
+                <span className="flex items-center gap-1.5 font-bold text-[#5C6B44]">
+                  <Users className="h-4 w-4 text-[#89986D]" /> Active Headcount
                 </span>
-                <span className="font-bold text-white font-mono">{row.employeeCount} Employees</span>
+                <span className="font-bold text-[#364322] font-mono">{row.employeeCount} Employees</span>
               </div>
             </Card>
           ))
         ) : (
-          <div className="md:col-span-2 xl:col-span-3 p-12 text-center rounded-3xl border border-dashed border-white/10 bg-slate-900/40 text-slate-400 text-xs">
+          <div className="md:col-span-2 xl:col-span-3 p-12 text-center neu-inset text-[#5C6B44] text-xs font-bold">
             No departments created yet. Add a department to organize your workforce.
           </div>
         )}
@@ -202,41 +202,41 @@ export default function Departments() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+        <DialogContent className="max-w-md border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
+            <DialogTitle className="text-lg font-bold text-[#364322]">
               {editing ? "Update Department" : "Create Department"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 pt-2 text-xs">
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Department Name</Label>
+              <Label className="text-[#364322] font-bold">Department Name</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Engineering"
-                className="rounded-xl border-white/10 bg-white/5 text-xs"
+                className="neu-input text-xs font-medium"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Department Code</Label>
+              <Label className="text-[#364322] font-bold">Department Code</Label>
               <Input
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. ENG"
-                className="rounded-xl border-white/10 bg-white/5 text-xs font-mono"
+                className="neu-input text-xs font-mono font-bold"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Department Head</Label>
+              <Label className="text-[#364322] font-bold">Department Head</Label>
               <Select value={headEmployeeId} onValueChange={setHeadEmployeeId}>
-                <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-xs">
+                <SelectTrigger className="neu-input text-xs font-bold text-[#364322]">
                   <SelectValue placeholder="Select head" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#F6F0D7] border-none shadow-[8px_8px_20px_#D8D2BC,-8px_-8px_20px_#FFFFFF] rounded-2xl text-[#364322]">
                   <SelectItem value="none">No Head Assigned</SelectItem>
                   {employees.data?.items.map((item: any) => (
                     <SelectItem key={item.employee.id} value={String(item.employee.id)}>
@@ -248,12 +248,12 @@ export default function Departments() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Description</Label>
+              <Label className="text-[#364322] font-bold">Description</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief department responsibilities…"
-                className="rounded-xl border-white/10 bg-white/5 text-xs min-h-[80px]"
+                className="neu-input text-xs min-h-[80px] p-3 font-medium"
               />
             </div>
           </div>
@@ -262,14 +262,14 @@ export default function Departments() {
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
-              className="rounded-xl border-white/10 bg-white/5 text-xs"
+              className="neu-button text-xs px-5"
             >
               Cancel
             </Button>
             <Button
               disabled={!name || !code || createMutation.isPending || updateMutation.isPending}
               onClick={handleSave}
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5"
+              className="neu-button-primary text-xs px-6"
             >
               {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save Department"}
             </Button>
@@ -279,22 +279,22 @@ export default function Departments() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteCandidate} onOpenChange={(v) => !v && setDeleteCandidate(null)}>
-        <AlertDialogContent className="max-w-md border-white/10 bg-[#0B0F19] text-white rounded-3xl p-6">
+        <AlertDialogContent className="max-w-md border-none bg-[#F6F0D7] text-[#364322] shadow-[12px_12px_30px_#D8D2BC,-12px_-12px_30px_#FFFFFF] rounded-[30px] p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">
+            <AlertDialogTitle className="text-lg font-bold text-[#364322]">
               Delete {deleteCandidate?.name}?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-slate-400">
+            <AlertDialogDescription className="text-xs text-[#5C6B44] font-medium">
               This action cannot be undone. Departments with assigned active employees cannot be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 text-xs">
+            <AlertDialogCancel className="neu-button text-xs px-5">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => removeMutation.mutate({ id: deleteCandidate.id })}
-              className="rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-5"
+              className="bg-[#D9534F] text-white font-bold text-xs px-5 rounded-2xl shadow-[4px_4px_10px_#D8D2BC]"
             >
               Delete Department
             </AlertDialogAction>
@@ -304,3 +304,4 @@ export default function Departments() {
     </div>
   );
 }
+
