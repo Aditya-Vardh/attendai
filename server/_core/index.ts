@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { runDailyAttendanceDigest } from "../scheduled/dailyDigest";
+import { runSeedIfNeeded } from "../seed";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +38,7 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  runSeedIfNeeded().catch(err => console.error("[Seed] Initial seed failed:", err));
   app.post("/api/scheduled/daily-attendance-digest", runDailyAttendanceDigest);
   // tRPC API
   app.use(

@@ -3,20 +3,20 @@
 - [x] Define the final AttendAI data model for roles, employees, departments, attendance, leave balances, leave requests, notifications, anomalies, reports, audit events, and copilot conversations.
 - [x] Extend authentication with Admin, HR Manager, and Employee role authorization at every protected procedure and client route.
 - [x] Create service-oriented server modules for identity, workforce, attendance, leave, analytics, reporting, notifications, audit, anomaly detection, and AI copilot capabilities.
-- [ ] Implement department creation, editing, head assignment, employee counts, analytics, and deletion safeguards.
-- [ ] Implement employee creation, editing, profile viewing, department assignment, status changes, access provisioning, search, filtering, sorting, pagination, validation, and confirmation dialogs.
-- [ ] Implement employee and manager attendance workflows: check-in, check-out, calculated work hours, late status, historic records, calendar and table views, filters, and pagination.
+- [x] Implement department creation, editing, head assignment, employee counts, analytics, and deletion safeguards.
+- [x] Implement employee creation, editing, profile viewing, department assignment, status changes, access provisioning, search, filtering, sorting, pagination, validation, and confirmation dialogs.
+- [x] Implement employee and manager attendance workflows: check-in, check-out, calculated work hours, late status, historic records, calendar and table views, filters, and pagination.
 - [x] Implement leave balances and leave-request workflows with validation, manager decisioning, outcome reasons, timelines, and employee status tracking.
 - [x] Build a premium responsive dashboard shell with dark/light themes, accessible sidebar, global search, notifications, profile controls, responsive mobile drawer, loading states, and error states.
 - [x] Build API-connected workforce dashboard cards, trends, department comparisons, attendance summaries, and role-aware personal views.
 - [x] Build analytics views and exportable reports using actual database data, including attendance, leave, department, absence, and anomaly reports.
 - [x] Build in-app notification creation, inbox, read state, and delivery records for leave outcomes, anomaly alerts, and admin digests.
 - [x] Add email notification delivery integration or a clearly surfaced configuration requirement with safe delivery failure handling.
-- [ ] Implement automated daily attendance digest scheduling in accordance with supported recurring-task architecture.
+- [x] Implement automated daily attendance digest scheduling in accordance with supported recurring-task architecture.
 - [x] Implement deterministic attendance anomaly detection for late arrivals, sudden absence, irregular hours, and department deviations.
 - [x] Integrate the approved LLM service for the Workforce Copilot and LLM-generated anomaly explanations using role-scoped application tools.
 - [x] Build the AI Workforce Copilot interface with authorization-aware chat, intent handling, tool calls, citations to live app data, and audit events.
 - [x] Implement audit logs for sensitive workforce, leave, attendance, notification, and AI actions.
-- [ ] Write or update Vitest coverage for procedures, authorization, calculations, anomaly logic, notifications, reports, and AI-tool guardrails.
+- [x] Write or update Vitest coverage for procedures, authorization, calculations, anomaly logic, notifications, reports, and AI-tool guardrails.
 - [x] Verify the application in the browser at desktop and mobile sizes; fix functional, visual, and console errors.
-- [ ] Save a final project checkpoint after verifying that every completed item is marked done.
+- [x] Save a final project checkpoint after verifying that every completed item is marked done.

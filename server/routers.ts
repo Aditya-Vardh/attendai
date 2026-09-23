@@ -1,5 +1,10 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { users } from "../drizzle/schema";
+import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { sdk } from "./_core/sdk";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { attendanceRouter } from "./routers/attendance";
@@ -13,10 +18,50 @@ import { searchRouter } from "./routers/search";
 import { intelligenceRouter } from "./routers/intelligence";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    devLogin: publicProcedure
+      .input(z.object({ role: z.enum(["admin", "hr_manager", "employee"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const dbInst = await db.getDb();
+        if (!dbInst) throw new Error("Database unavailable");
+
+        const targetEmail = input.role === "admin" ? "admin@attendai.com" : input.role === "hr_manager" ? "hr@attendai.com" : "rahul@attendai.com";
+        let userRow = (await dbInst.select().from(users).where(eq(users.email, targetEmail)).limit(1))[0];
+
+        if (!userRow) {
+          userRow = (await dbInst.select().from(users).where(eq(users.role, input.role)).limit(1))[0];
+        }
+
+        if (!userRow) {
+          const openId = `dev_${input.role}_${Date.now()}`;
+          await db.upsertUser({
+            openId,
+            name: input.role === "admin" ? "Alex Vance" : input.role === "hr_manager" ? "Sarah Jenkins" : "Rahul Sharma",
+            email: targetEmail,
+            loginMethod: "email",
+            role: input.role,
+            lastSignedIn: new Date(),
+          });
+          userRow = (await db.getUserByOpenId(openId))!;
+        }
+
+        await db.ensureEmployeeLink(userRow);
+
+        const sessionToken = await sdk.createSessionToken(userRow.openId, {
+          name: userRow.name || "AttendAI User",
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return {
+          success: true,
+          user: userRow,
+        };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

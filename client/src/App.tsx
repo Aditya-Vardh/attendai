@@ -25,7 +25,15 @@ function Workspace({ children, roles }: { children: React.ReactNode; roles?: App
   useEffect(() => {
     if (denied) setLocation(user ? "/dashboard" : "/");
   }, [denied, setLocation, user]);
-  if (loading || denied) return <div className="grid min-h-screen place-items-center bg-background"><div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" /></div>;
+  if (loading || denied)
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#070913]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
+          <span className="text-xs font-semibold text-slate-400">Authenticating AttendAI workspace…</span>
+        </div>
+      </div>
+    );
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 
