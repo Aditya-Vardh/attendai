@@ -28,6 +28,8 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { QrCameraScanner } from "@/components/QrCameraScanner";
+import { FaceCheckInWidget } from "@/components/FaceCheckInWidget";
 import { toast } from "sonner";
 
 const formatDate = (value: string) =>
@@ -55,13 +57,39 @@ function EmployeeDashboard({ user, setLocation }: { user: any; setLocation: (pat
   const mineToday = trpc.attendance.mineToday.useQuery();
   const myLeaves = trpc.leave.list.useQuery({ page: 1, pageSize: 5 });
   const overview = trpc.dashboard.overview.useQuery();
-  const utils = trpc.useUtils();
 
   const [elapsed, setElapsed] = useState<string>("00h 00m 00s");
+  const [geoState, setGeoState] = useState<"idle" | "locating" | "outside" | "denied" | "error">("idle");
+  const [geoInfo, setGeoInfo] = useState<{ distanceM: number; radiusM: number } | null>(null);
+  const [qrInput, setQrInput] = useState("");
+  const [activeTab, setActiveTab] = useState<"geo" | "qr" | "face">("geo");
+  const [showManualQr, setShowManualQr] = useState(false);
+
+  // Pick up ?qr= token from URL on mount (for mobile camera scan)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qrToken = params.get("qr");
+    if (qrToken) {
+      setQrInput(qrToken);
+      setActiveTab("qr");
+      setShowManualQr(true);
+    }
+  }, []);
 
   const clockIn = trpc.attendance.clockIn.useMutation({
     onSuccess: () => {
-      toast.success("Checked in successfully.");
+      toast.success("✓ Checked in successfully.");
+      setGeoState("idle");
+      mineToday.refetch();
+      overview.refetch();
+    },
+    onError: (e) => { toast.error(e.message); setGeoState("idle"); },
+  });
+
+  const clockInWithQr = trpc.attendance.clockInWithQr.useMutation({
+    onSuccess: () => {
+      toast.success("✓ Checked in via QR code.");
+      setQrInput("");
       mineToday.refetch();
       overview.refetch();
     },
@@ -80,27 +108,43 @@ function EmployeeDashboard({ user, setLocation }: { user: any; setLocation: (pat
   // Live Working Duration Counter
   useEffect(() => {
     if (!mineToday.data?.checkInAt || mineToday.data?.checkOutAt) return;
-
     const updateTimer = () => {
-      const checkInTime = new Date(mineToday.data!.checkInAt!).getTime();
-      const now = Date.now();
-      const diffMs = Math.max(0, now - checkInTime);
-
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-      setElapsed(
-        `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`
-      );
+      const diffMs = Math.max(0, Date.now() - new Date(mineToday.data!.checkInAt!).getTime());
+      const h = Math.floor(diffMs / 3_600_000);
+      const m = Math.floor((diffMs % 3_600_000) / 60_000);
+      const s = Math.floor((diffMs % 60_000) / 1000);
+      setElapsed(`${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`);
     };
-
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
+    const id = setInterval(updateTimer, 1000);
+    return () => clearInterval(id);
   }, [mineToday.data]);
 
-  const firstName = user?.name?.split(" ")[0] ?? "Rahul";
+  const handleGeoCheckIn = async () => {
+    setGeoState("locating");
+    try {
+      const { getCurrentPosition, checkGeoAllowed } = await import("@/lib/geo");
+      const pos = await getCurrentPosition();
+      const result = checkGeoAllowed(pos.coords.latitude, pos.coords.longitude);
+      if (result.allowed) {
+        clockIn.mutate();
+      } else {
+        setGeoState("outside");
+        setGeoInfo({ distanceM: result.distanceM, radiusM: result.radiusM });
+      }
+    } catch (err: any) {
+      if (err?.code === 1 /* PERMISSION_DENIED */) {
+        setGeoState("denied");
+      } else {
+        setGeoState("error");
+        toast.error("Location check failed: " + (err?.message ?? "Unknown error"));
+      }
+    }
+  };
+
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+  const alreadyCheckedIn = !!mineToday.data?.checkInAt;
+  const alreadyCheckedOut = !!mineToday.data?.checkOutAt;
 
   return (
     <div className="space-y-6">
@@ -110,68 +154,216 @@ function EmployeeDashboard({ user, setLocation }: { user: any; setLocation: (pat
         description="Here's your personal workforce overview, attendance status, and leave summary."
       />
 
-      {/* Main Neumorphic Attendance Status Panel */}
+      {/* ── Attendance Status Panel ── */}
       <div className="neu-card p-7 text-[#364322] relative overflow-hidden">
-        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 neu-badge-sage px-3.5 py-1.5 text-xs font-bold">
               <Clock className="h-4 w-4 text-[#2C3917]" /> TODAY'S ATTENDANCE STATUS
             </div>
-
             <h2 className="mt-4 text-3xl font-black tracking-tight text-[#364322] sm:text-4xl">
-              {mineToday.data?.checkOutAt
+              {alreadyCheckedOut
                 ? "Workday Completed"
-                : mineToday.data?.checkInAt
+                : alreadyCheckedIn
                 ? "You're Checked In"
                 : "Ready to Start Your Day"}
             </h2>
-
             <p className="mt-2 text-sm text-[#5C6B44] font-medium">
-              {mineToday.data?.checkInAt
-                ? `Checked in at ${new Date(mineToday.data.checkInAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}`
-                : "Record your timestamp to begin tracking working hours."}
+              {alreadyCheckedIn
+                ? `Checked in at ${new Date(mineToday.data!.checkInAt!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                : "Use geolocation or QR code to record your arrival."}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 neu-inset p-5">
-            {mineToday.data?.checkInAt && !mineToday.data?.checkOutAt && (
-              <div className="text-center sm:text-left pr-4 border-b sm:border-b-0 sm:border-r border-[#D8D2BC] pb-3 sm:pb-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#89986D]">
-                  Active Duration
-                </span>
+          <div className="flex flex-col gap-3 neu-inset p-5 min-w-[280px]">
+            {/* Active timer */}
+            {alreadyCheckedIn && !alreadyCheckedOut && (
+              <div className="text-center pb-3 border-b border-[#D8D2BC]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#89986D]">Active Duration</span>
                 <p className="text-2xl font-black text-[#364322] font-mono">{elapsed}</p>
               </div>
             )}
 
-            {!mineToday.data?.checkInAt && (
-              <Button
-                size="lg"
-                onClick={() => clockIn.mutate()}
-                disabled={clockIn.isPending}
-                className="w-full sm:w-auto neu-button-primary px-8 h-12 text-sm"
-              >
-                {clockIn.isPending ? "Checking in…" : "Check In Now"}
-              </Button>
+            {/* Checked out badge */}
+            {alreadyCheckedOut && (
+              <Badge className="neu-badge-sage px-4 py-2 text-sm font-bold text-center">
+                ✓ Shift Ended at {new Date(mineToday.data!.checkOutAt!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </Badge>
             )}
 
-            {mineToday.data?.checkInAt && !mineToday.data?.checkOutAt && (
+            {/* Check-out button */}
+            {alreadyCheckedIn && !alreadyCheckedOut && (
               <Button
                 size="lg"
                 onClick={() => clockOut.mutate()}
                 disabled={clockOut.isPending}
-                className="w-full sm:w-auto neu-button px-8 h-12 text-sm text-[#D9534F]"
+                className="w-full neu-button px-8 h-12 text-sm text-[#D9534F]"
               >
                 {clockOut.isPending ? "Checking out…" : "Check Out"}
               </Button>
             )}
 
-            {mineToday.data?.checkOutAt && (
-              <Badge className="neu-badge-sage px-4 py-2 text-sm font-bold">
-                ✓ Shift Ended at {new Date(mineToday.data.checkOutAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </Badge>
+            {/* ── Check-in block (not yet checked in) ── */}
+            {!alreadyCheckedIn && (
+              <>
+                {/* 3 Tab Switcher: Geo, QR, Face ID */}
+                <div className="flex bg-[#EADFB4]/50 rounded-xl p-1 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("geo"); setGeoState("idle"); }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      activeTab === "geo" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                    }`}
+                  >
+                    📍 Location
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("qr"); setGeoState("idle"); }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      activeTab === "qr" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                    }`}
+                  >
+                    📷 QR Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("face"); setGeoState("idle"); }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      activeTab === "face" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                    }`}
+                  >
+                    👤 Face ID
+                  </button>
+                </div>
+
+                {/* 1. Location check-in */}
+                {activeTab === "geo" && (
+                  <div className="space-y-2">
+                    {geoState === "idle" && (
+                      <Button
+                        size="lg"
+                        onClick={handleGeoCheckIn}
+                        disabled={clockIn.isPending}
+                        className="w-full neu-button-primary px-8 h-12 text-sm font-bold"
+                      >
+                        Check In Now
+                      </Button>
+                    )}
+                    {geoState === "locating" && (
+                      <div className="flex items-center justify-center gap-2 h-12 text-sm font-bold text-[#5C6B44]">
+                        <div className="h-4 w-4 rounded-full border-2 border-[#9CAB84] border-t-transparent animate-spin" />
+                        Verifying KLH Campus location…
+                      </div>
+                    )}
+                    {geoState === "outside" && geoInfo && (
+                      <div className="space-y-2">
+                        <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 font-semibold text-center">
+                          <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-rose-600" />
+                          Must be on KLH Bachupally Campus to check in.
+                          <br />
+                          <span className="font-black">Distance: {geoInfo.distanceM}m</span> (allowed: {geoInfo.radiusM}m).
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setGeoState("idle")}
+                          className="w-full text-xs font-bold text-[#5C6B44] underline cursor-pointer"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    )}
+                    {geoState === "denied" && (
+                      <div className="space-y-2">
+                        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 font-semibold text-center">
+                          Location access was denied. Enable it in browser settings or use QR / Face ID tab.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setGeoState("idle")}
+                          className="w-full text-xs font-bold text-[#5C6B44] underline cursor-pointer"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
+                    {geoState === "error" && (
+                      <Button
+                        size="lg"
+                        onClick={handleGeoCheckIn}
+                        className="w-full neu-button-primary px-8 h-12 text-sm font-bold"
+                      >
+                        Retry Location Check
+                      </Button>
+                    )}
+                    <p className="text-[11px] text-center text-[#89986D] font-medium">
+                      KLH Bachupally Campus ({import.meta.env.VITE_OFFICE_RADIUS_M ?? 350}m allowed radius).
+                    </p>
+                  </div>
+                )}
+
+                {/* 2. QR Camera check-in */}
+                {activeTab === "qr" && (
+                  <div className="space-y-3">
+                    {!showManualQr ? (
+                      <>
+                        <QrCameraScanner
+                          onScan={(token) => {
+                            clockInWithQr.mutate({ token });
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowManualQr(true)}
+                          className="text-[11px] text-[#5C6B44] underline font-bold w-full text-center cursor-pointer"
+                        >
+                          Camera not working? Paste token manually
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[#5C6B44] font-medium">
+                          Paste office QR code token below:
+                        </p>
+                        <input
+                          value={qrInput}
+                          onChange={(e) => setQrInput(e.target.value)}
+                          placeholder="Paste QR token here…"
+                          className="w-full rounded-xl bg-[#F6F0D7] border-none shadow-[inset_3px_3px_7px_#D8D2BC,inset_-3px_-3px_7px_#FFFFFF] px-4 py-2.5 text-xs font-mono text-[#364322] placeholder:text-[#89986D] focus:outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="lg"
+                            onClick={() => clockInWithQr.mutate({ token: qrInput.trim() })}
+                            disabled={!qrInput.trim() || clockInWithQr.isPending}
+                            className="flex-1 neu-button-primary h-11 text-xs font-bold"
+                          >
+                            {clockInWithQr.isPending ? "Verifying…" : "Submit Token"}
+                          </Button>
+                          <Button
+                            size="lg"
+                            variant="ghost"
+                            onClick={() => setShowManualQr(false)}
+                            className="text-xs font-bold text-[#5C6B44]"
+                          >
+                            Use Camera
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. Face ID check-in */}
+                {activeTab === "face" && (
+                  <FaceCheckInWidget
+                    onSuccess={() => {
+                      mineToday.refetch();
+                      overview.refetch();
+                    }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -245,10 +437,7 @@ function EmployeeDashboard({ user, setLocation }: { user: any; setLocation: (pat
                 myLeaves.data.items.slice(0, 4).map((row: any) => {
                   const req = row.request;
                   return (
-                    <div
-                      key={req.id}
-                      className="flex items-center justify-between p-3.5 neu-card-flat"
-                    >
+                    <div key={req.id} className="flex items-center justify-between p-3.5 neu-card-flat">
                       <div>
                         <p className="text-xs font-bold text-[#364322] capitalize">{req.leaveType} Leave</p>
                         <p className="text-[11px] text-[#5C6B44] font-medium mt-0.5">

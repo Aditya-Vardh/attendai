@@ -33,6 +33,8 @@ import {
   UserX,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { QrCameraScanner } from "@/components/QrCameraScanner";
+import { FaceCheckInWidget } from "@/components/FaceCheckInWidget";
 import { toast } from "sonner";
 
 export default function Attendance() {
@@ -68,6 +70,44 @@ export default function Attendance() {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const [geoState, setGeoState] = useState<"idle" | "locating" | "outside" | "denied" | "error">("idle");
+  const [geoInfo, setGeoInfo] = useState<{ distanceM: number; radiusM: number } | null>(null);
+  const [qrInput, setQrInput] = useState("");
+  const [activeTab, setActiveTab] = useState<"geo" | "qr" | "face">("geo");
+  const [showManualQr, setShowManualQr] = useState(false);
+
+  const clockInWithQr = trpc.attendance.clockInWithQr.useMutation({
+    onSuccess: () => {
+      toast.success("✓ Checked in via QR code.");
+      setQrInput("");
+      today.refetch();
+      utils.attendance.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleGeoCheckIn = async () => {
+    setGeoState("locating");
+    try {
+      const { getCurrentPosition, checkGeoAllowed } = await import("@/lib/geo");
+      const pos = await getCurrentPosition();
+      const result = checkGeoAllowed(pos.coords.latitude, pos.coords.longitude);
+      if (result.allowed) {
+        clockIn.mutate();
+      } else {
+        setGeoState("outside");
+        setGeoInfo({ distanceM: result.distanceM, radiusM: result.radiusM });
+      }
+    } catch (err: any) {
+      if (err?.code === 1 /* PERMISSION_DENIED */) {
+        setGeoState("denied");
+      } else {
+        setGeoState("error");
+        toast.error("Location check failed: " + (err?.message ?? "Unknown error"));
+      }
+    }
+  };
 
   // Live Timer for Employee Clocking Station
   const [elapsed, setElapsed] = useState<string>("00h 00m 00s");
@@ -108,7 +148,7 @@ export default function Attendance() {
       {/* Employee Interactive Clocking Station Panel */}
       {isEmployee && (
         <div className="neu-card p-7 text-[#364322]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
             <div className="space-y-2">
               <span className="inline-flex items-center gap-1.5 neu-badge-sage px-3.5 py-1 text-xs font-bold">
                 <Clock className="h-3.5 w-3.5 text-[#2C3917]" /> Attendance Clocking Station
@@ -126,27 +166,175 @@ export default function Attendance() {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}`
-                  : "Click Check In to begin your active shift timer."}
+                  : "Use geolocation or QR code to record your arrival."}
               </p>
             </div>
 
-            <div className="flex items-center gap-4 neu-inset p-4">
+            <div className="flex flex-col gap-3 neu-inset p-5 min-w-[280px]">
               {today.data?.checkInAt && !today.data?.checkOutAt && (
-                <div className="text-left pr-4 border-r border-[#D8D2BC]">
+                <div className="text-center pb-3 border-b border-[#D8D2BC]">
                   <span className="text-[10px] font-bold uppercase text-[#89986D]">Working Duration</span>
-                  <p className="text-xl font-black text-[#364322] font-mono">{elapsed}</p>
+                  <p className="text-2xl font-black text-[#364322] font-mono">{elapsed}</p>
                 </div>
               )}
 
               {!today.data?.checkInAt && (
-                <Button
-                  onClick={() => clockIn.mutate()}
-                  disabled={clockIn.isPending}
-                  className="neu-button-primary px-6 h-11 text-sm"
-                >
-                  <LogIn className="mr-2 h-4 w-4" />
-                  {clockIn.isPending ? "Checking in…" : "Check In"}
-                </Button>
+                <>
+                  {/* 3 Tab Switcher: Geo, QR, Face ID */}
+                  <div className="flex bg-[#EADFB4]/50 rounded-xl p-1 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab("geo"); setGeoState("idle"); }}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        activeTab === "geo" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                      }`}
+                    >
+                      📍 Location
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab("qr"); setGeoState("idle"); }}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        activeTab === "qr" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                      }`}
+                    >
+                      📷 QR Code
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab("face"); setGeoState("idle"); }}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        activeTab === "face" ? "bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]" : "text-[#5C6B44]"
+                      }`}
+                    >
+                      👤 Face ID
+                    </button>
+                  </div>
+
+                  {/* 1. Location check-in */}
+                  {activeTab === "geo" && (
+                    <div className="space-y-2">
+                      {geoState === "idle" && (
+                        <Button
+                          size="lg"
+                          onClick={handleGeoCheckIn}
+                          disabled={clockIn.isPending}
+                          className="w-full neu-button-primary px-8 h-11 text-sm font-bold"
+                        >
+                          <LogIn className="mr-2 h-4 w-4" />
+                          {clockIn.isPending ? "Checking in…" : "Check In"}
+                        </Button>
+                      )}
+                      {geoState === "locating" && (
+                        <div className="flex items-center justify-center gap-2 h-11 text-sm font-bold text-[#5C6B44]">
+                          <div className="h-4 w-4 rounded-full border-2 border-[#9CAB84] border-t-transparent animate-spin" />
+                          Verifying KLH Campus location…
+                        </div>
+                      )}
+                      {geoState === "outside" && geoInfo && (
+                        <div className="space-y-2">
+                          <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 font-semibold text-center">
+                            Must be on KLH Bachupally Campus to check in.
+                            <br />
+                            <span className="font-black">Distance: {geoInfo.distanceM}m</span> (allowed: {geoInfo.radiusM}m).
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setGeoState("idle")}
+                            className="w-full text-xs font-bold text-[#5C6B44] underline cursor-pointer"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      )}
+                      {geoState === "denied" && (
+                        <div className="space-y-2">
+                          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 font-semibold text-center">
+                            Location access was denied. Enable it in browser settings or use QR / Face ID tab.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setGeoState("idle")}
+                            className="w-full text-xs font-bold text-[#5C6B44] underline cursor-pointer"
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      )}
+                      {geoState === "error" && (
+                        <Button
+                          size="lg"
+                          onClick={handleGeoCheckIn}
+                          className="w-full neu-button-primary px-8 h-11 text-sm font-bold"
+                        >
+                          Retry Location Check
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 2. QR Camera check-in */}
+                  {activeTab === "qr" && (
+                    <div className="space-y-3">
+                      {!showManualQr ? (
+                        <>
+                          <QrCameraScanner
+                            onScan={(token) => {
+                              clockInWithQr.mutate({ token });
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowManualQr(true)}
+                            className="text-[11px] text-[#5C6B44] underline font-bold w-full text-center cursor-pointer"
+                          >
+                            Camera not working? Paste token manually
+                          </button>
+                        </>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-xs text-[#5C6B44] font-medium">
+                            Paste office QR code token below:
+                          </p>
+                          <input
+                            value={qrInput}
+                            onChange={(e) => setQrInput(e.target.value)}
+                            placeholder="Paste QR token here…"
+                            className="w-full rounded-xl bg-[#F6F0D7] border-none shadow-[inset_3px_3px_7px_#D8D2BC,inset_-3px_-3px_7px_#FFFFFF] px-4 py-2 text-xs font-mono text-[#364322] placeholder:text-[#89986D] focus:outline-none"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="lg"
+                              onClick={() => clockInWithQr.mutate({ token: qrInput.trim() })}
+                              disabled={!qrInput.trim() || clockInWithQr.isPending}
+                              className="flex-1 neu-button-primary h-11 text-xs font-bold"
+                            >
+                              {clockInWithQr.isPending ? "Verifying…" : "Submit Token"}
+                            </Button>
+                            <Button
+                              size="lg"
+                              variant="ghost"
+                              onClick={() => setShowManualQr(false)}
+                              className="text-xs font-bold text-[#5C6B44]"
+                            >
+                              Use Camera
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Face ID check-in */}
+                  {activeTab === "face" && (
+                    <FaceCheckInWidget
+                      onSuccess={() => {
+                        today.refetch();
+                        utils.attendance.list.invalidate();
+                      }}
+                    />
+                  )}
+                </>
               )}
 
               {today.data?.checkInAt && !today.data?.checkOutAt && (

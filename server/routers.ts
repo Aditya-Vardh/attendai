@@ -1,4 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "../drizzle/schema";
@@ -6,7 +7,7 @@ import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { sdk } from "./_core/sdk";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { attendanceRouter } from "./routers/attendance";
 import { dashboardRouter } from "./routers/dashboard";
 import { leaveRouter } from "./routers/leave";
@@ -71,6 +72,46 @@ export const appRouter = router({
       return {
         success: true,
       } as const;
+    }),
+    enrollFace: protectedProcedure
+      .input(
+        z.object({
+          consent: z.boolean(),
+          descriptor: z.array(z.number()).length(128),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (!input.consent) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Biometric consent is required to enroll Face ID." });
+        }
+        const dbInst = await db.getDb();
+        if (!dbInst) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+        await dbInst
+          .update(users)
+          .set({
+            faceDescriptor: JSON.stringify(input.descriptor),
+            faceConsentGiven: true,
+            faceEnrolledAt: new Date(),
+          })
+          .where(eq(users.id, ctx.user.id));
+
+        return { success: true };
+      }),
+    deleteFace: protectedProcedure.mutation(async ({ ctx }) => {
+      const dbInst = await db.getDb();
+      if (!dbInst) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      await dbInst
+        .update(users)
+        .set({
+          faceDescriptor: null,
+          faceConsentGiven: false,
+          faceEnrolledAt: null,
+        })
+        .where(eq(users.id, ctx.user.id));
+
+      return { success: true };
     }),
   }),
   organization: organizationRouter,

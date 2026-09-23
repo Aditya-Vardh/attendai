@@ -20,6 +20,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  QrCode,
   Search,
   Settings,
   ShieldCheck,
@@ -41,6 +42,7 @@ const navigation: NavItem[] = [
   { label: "Overview", path: "/dashboard", icon: Home },
   { label: "Employees", path: "/employees", icon: Users, roles: ["admin", "hr_manager"] },
   { label: "Attendance", path: "/attendance", icon: CalendarClock },
+  { label: "Office QR Kiosk", path: "/office-qr", icon: QrCode, roles: ["admin", "hr_manager"] },
   { label: "Leave", path: "/leave", icon: FileBarChart },
   { label: "Departments", path: "/departments", icon: Building2, roles: ["admin", "hr_manager"] },
   { label: "Analytics", path: "/analytics", icon: ChartNoAxesCombined, roles: ["admin", "hr_manager"] },
@@ -83,95 +85,95 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col justify-between p-3.5 bg-[#F6F0D7]">
-      <div>
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-3 px-3">
+    <div className="flex h-full flex-col justify-between overflow-hidden p-3 bg-[#F6F0D7]">
+      {/* Top Logo */}
+      <div className="flex-shrink-0">
+        <div className="flex h-14 items-center gap-3 px-2">
           <Link
             href="/dashboard"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#9CAB84] text-white font-black shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF]"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#9CAB84] text-white font-black shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF]"
           >
-            <span className="text-xl">A</span>
+            <span className="text-lg">A</span>
           </Link>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-extrabold tracking-tight text-[#364322] text-lg">AttendAI</p>
-              <p className="text-[10px] uppercase font-bold tracking-widest text-[#89986D]">
+              <p className="font-extrabold tracking-tight text-[#364322] text-base">AttendAI</p>
+              <p className="text-[9px] uppercase font-bold tracking-widest text-[#89986D]">
                 Workforce Intel
               </p>
             </div>
           )}
         </div>
-
-        {/* Nav Items */}
-        <nav className="mt-4 space-y-2">
-          {!collapsed && (
-            <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#89986D]">
-              Navigation
-            </p>
-          )}
-
-          <TooltipProvider>
-            {visibleNavigation.map((item) => {
-              const active = location === item.path;
-              const contents = (
-                <>
-                  <item.icon
-                    className={`h-[18px] w-[18px] shrink-0 ${
-                      active ? "text-white" : "text-[#5C6B44] group-hover:text-[#364322]"
-                    }`}
-                  />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </>
-              );
-
-              return (
-                <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setLocation(item.path)}
-                      className={`group flex h-11 w-full items-center gap-3.5 rounded-2xl px-3.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
-                        active
-                          ? "bg-[#9CAB84] text-white shadow-[5px_5px_12px_#82916B,-5px_-5px_12px_#B6C59D]"
-                          : "text-[#364322] hover:bg-[#C5D89D]/40 shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF]"
-                      } ${collapsed ? "justify-center px-0" : ""}`}
-                    >
-                      {contents}
-                    </button>
-                  </TooltipTrigger>
-                  {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
-        </nav>
       </div>
 
-      {/* Footer Area: Copilot Card & User Profile */}
-      <div className="space-y-3">
+      {/* Nav Items — Scrollable list */}
+      <div className="flex-1 min-h-0 overflow-y-auto my-2 pr-1 space-y-1.5 scrollbar-thin">
         {!collapsed && (
-          <div className="neu-card-sage p-4">
+          <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#89986D]">
+            Navigation
+          </p>
+        )}
+
+        <TooltipProvider>
+          {visibleNavigation.map((item) => {
+            const active = location === item.path;
+            const contents = (
+              <>
+                <item.icon
+                  className={`h-4 w-4 shrink-0 ${
+                    active ? "text-white" : "text-[#5C6B44] group-hover:text-[#364322]"
+                  }`}
+                />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </>
+            );
+
+            return (
+              <Tooltip key={item.path}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setLocation(item.path)}
+                    className={`group flex h-9.5 w-full items-center gap-3 rounded-2xl px-3 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                      active
+                        ? "bg-[#9CAB84] text-white shadow-[4px_4px_10px_#82916B,-4px_-4px_10px_#B6C59D]"
+                        : "text-[#364322] hover:bg-[#C5D89D]/40 shadow-[2px_2px_6px_#D8D2BC,-2px_-2px_6px_#FFFFFF]"
+                    } ${collapsed ? "justify-center px-0" : ""}`}
+                  >
+                    {contents}
+                  </button>
+                </TooltipTrigger>
+                {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
+      </div>
+
+      {/* Footer Area: Copilot Card & User Profile & Sign Out — Always Pinned */}
+      <div className="flex-shrink-0 space-y-2 pt-2 border-t border-[#D8D2BC]/60">
+        {!collapsed && (
+          <div className="neu-card-sage p-3">
             <div className="flex items-center gap-2 text-xs font-bold text-[#2C3917]">
-              <Bot className="h-4 w-4 text-[#2C3917]" />
+              <Bot className="h-3.5 w-3.5 text-[#2C3917]" />
               <span>Workforce Copilot</span>
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-[#384A1E] font-medium">
+            <p className="mt-1 text-[10px] leading-snug text-[#384A1E] font-medium">
               Ask workforce questions in natural language.
             </p>
             <Button
               onClick={() => setLocation("/intelligence")}
-              className="mt-3 w-full neu-button-primary text-xs h-9 py-1"
+              className="mt-2 w-full neu-button-primary text-[11px] h-7 py-0.5"
             >
               Open Copilot
             </Button>
           </div>
         )}
 
-        <div className="border-t border-[#D8D2BC] pt-3 space-y-2">
+        <div className="space-y-1.5">
           {/* User identity row */}
-          <div className={`flex items-center gap-3 px-2 ${collapsed ? "justify-center" : ""}`}>
+          <div className={`flex items-center gap-2.5 px-2 ${collapsed ? "justify-center" : ""}`}>
             <UserButton fallback={
-              <Avatar className="h-9 w-9 shrink-0 bg-[#9CAB84] text-white shadow-[2px_2px_6px_#D8D2BC]">
+              <Avatar className="h-8 w-8 shrink-0 bg-[#9CAB84] text-white shadow-[2px_2px_6px_#D8D2BC]">
                 <AvatarFallback className="bg-[#9CAB84] text-white font-bold text-xs">
                   {user?.name?.slice(0, 2).toUpperCase() ?? "AI"}
                 </AvatarFallback>
@@ -187,29 +189,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
 
-          {/* Sign Out — always visible, labelled when expanded, icon+tooltip when collapsed */}
-          {collapsed ? (
+          {/* Sign Out — always visible for all roles */}
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
-                  title="Sign out"
-                  className="w-full flex items-center justify-center h-10 rounded-2xl text-[#5C6B44] bg-[#F6F0D7] shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF] hover:text-[#D9534F] hover:shadow-[5px_5px_12px_#D8D2BC,-5px_-5px_12px_#FFFFFF] transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 h-9 px-3 rounded-2xl text-xs font-bold text-[#5C6B44] bg-[#F6F0D7] shadow-[3px_3px_8px_#D8D2BC,-3px_-3px_8px_#FFFFFF] hover:text-[#D9534F] hover:shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF] transition-all cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3.5 w-3.5 shrink-0" />
+                  {!collapsed && <span>Sign Out</span>}
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">Sign Out</TooltipContent>
+              {collapsed && <TooltipContent side="right">Sign Out</TooltipContent>}
             </Tooltip>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 h-10 px-4 rounded-2xl text-xs font-bold text-[#5C6B44] bg-[#F6F0D7] shadow-[4px_4px_10px_#D8D2BC,-4px_-4px_10px_#FFFFFF] hover:text-[#D9534F] hover:shadow-[5px_5px_12px_#D8D2BC,-5px_-5px_12px_#FFFFFF] transition-all cursor-pointer"
-            >
-              <LogOut className="h-4 w-4 shrink-0" />
-              Sign Out
-            </button>
-          )}
+          </TooltipProvider>
         </div>
       </div>
     </div>

@@ -1,9 +1,11 @@
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/PageHeader";
 import { trpc } from "@/lib/trpc";
-import { Link2, RefreshCw, ShieldCheck, Users, Wrench } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, Link2, RefreshCw, ScanFace, ShieldCheck, Trash2, Users, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -68,6 +70,9 @@ export default function Settings() {
             />
           </div>
         </section>
+
+        {/* Face ID & Biometric Verification Card */}
+        <FaceIdEnrollmentSection user={user} refresh={refresh} />
 
         {/* Admin: User Role Management */}
         {user?.role === "admin" && (
@@ -230,3 +235,209 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
     </div>
   );
 }
+
+function FaceIdEnrollmentSection({ user, refresh }: { user: any; refresh: () => Promise<any> }) {
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const enrollMutation = trpc.auth.enrollFace.useMutation({
+    onSuccess: async () => {
+      toast.success("✓ Face ID enrolled successfully!");
+      stopCamera();
+      await refresh();
+    },
+    onError: (err) => toast.error(`Enrollment failed: ${err.message}`),
+  });
+
+  const deleteMutation = trpc.auth.deleteFace.useMutation({
+    onSuccess: async () => {
+      toast.success("Enrolled Face ID data deleted.");
+      await refresh();
+    },
+    onError: (err) => toast.error(`Deletion failed: ${err.message}`),
+  });
+
+  const startCamera = async () => {
+    setCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setIsCameraActive(true);
+    } catch (err: any) {
+      setCameraError("Camera access denied or device not found: " + (err?.message ?? "Unknown error"));
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
+  const handleEnrollCapture = async () => {
+    if (!videoRef.current || !consentGiven) return;
+    setIsProcessing(true);
+    try {
+      const { detectFaceDescriptor } = await import("@/lib/faceRecognition");
+      const descriptor = await detectFaceDescriptor(videoRef.current);
+      if (!descriptor) {
+        toast.error("No face detected in video frame. Position your face clearly inside the camera box and try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      enrollMutation.mutate({ consent: true, descriptor });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Face detection error.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const isEnrolled = !!user?.faceConsentGiven || !!user?.faceDescriptor;
+
+  return (
+    <section className="neu-card p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#D8D2BC] pb-4">
+        <div>
+          <div className="flex items-center gap-2 text-base font-bold text-[#364322]">
+            <ScanFace className="h-5 w-5 text-[#89986D]" />
+            <span>Face ID & Biometric Verification</span>
+          </div>
+          <p className="text-xs text-[#5C6B44] mt-1 font-medium leading-relaxed">
+            Enroll your facial features for instant webcam attendance verification.
+          </p>
+        </div>
+
+        <Badge
+          className={
+            isEnrolled
+              ? "neu-badge-sage text-xs font-bold shrink-0 self-start sm:self-center"
+              : "neu-badge text-xs font-bold shrink-0 self-start sm:self-center text-[#89986D]"
+          }
+        >
+          {isEnrolled ? "✓ Face ID Enrolled" : "Not Enrolled"}
+        </Badge>
+      </div>
+
+      {/* Biometric Disclaimer & Privacy Shield */}
+      <div className="rounded-2xl bg-[#EADFB4]/50 border border-[#D8D2BC] p-4 text-xs space-y-2 text-[#364322]">
+        <div className="flex items-center gap-2 font-bold text-[#2C3917]">
+          <ShieldCheck className="h-4 w-4 text-[#89986D]" />
+          <span>Biometric Privacy & Consent Guarantee</span>
+        </div>
+        <p className="text-[#5C6B44] font-medium leading-relaxed text-[11px]">
+          AttendAI converts your face image into a mathematical 128-dimensional descriptor vector in your browser.
+          <strong className="text-[#364322]"> Raw photos are NEVER saved or sent to any server.</strong> You can revoke consent and delete your biometric data at any time below.
+        </p>
+      </div>
+
+      {/* Existing Enrollment Status & Delete Option */}
+      {isEnrolled ? (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 neu-inset p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#9CAB84] text-white shadow-[2px_2px_6px_#82916B]">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-xs font-bold text-[#364322]">Face ID Profile Active</p>
+              <p className="text-[11px] text-[#5C6B44] font-medium">
+                You can now use the "👤 Face ID" tab on your attendance clocking station.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => deleteMutation.mutate()}
+            disabled={deleteMutation.isPending}
+            className="neu-button text-xs font-bold text-[#D9534F] hover:bg-rose-50 px-4 h-9 shrink-0 flex items-center gap-2"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {deleteMutation.isPending ? "Deleting…" : "Delete Enrolled Face ID"}
+          </Button>
+        </div>
+      ) : (
+        /* Enrollment Flow */
+        <div className="space-y-4 pt-2">
+          {/* Step 1: Explicit Consent Checkbox */}
+          <div className="flex items-start gap-3 neu-card-flat p-4">
+            <Checkbox
+              id="consent-checkbox"
+              checked={consentGiven}
+              onCheckedChange={(checked) => setConsentGiven(!!checked)}
+              className="mt-0.5"
+            />
+            <label htmlFor="consent-checkbox" className="text-xs font-bold text-[#364322] cursor-pointer leading-snug">
+              I explicitly consent to creating and storing a 128-dimensional mathematical descriptor of my facial features for attendance verification. I understand raw photos are not stored and I can delete this data at any time.
+            </label>
+          </div>
+
+          {/* Step 2: Camera Activation & Capture Station */}
+          {consentGiven && (
+            <div className="space-y-3">
+              {!isCameraActive ? (
+                <Button
+                  onClick={startCamera}
+                  className="neu-button-primary text-xs font-bold h-10 px-5 flex items-center gap-2"
+                >
+                  <Camera className="h-4 w-4" /> Start Webcam for Enrollment
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative overflow-hidden rounded-2xl bg-[#364322] aspect-video max-w-md mx-auto flex items-center justify-center border-2 border-[#9CAB84]">
+                    <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+                    <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-[#9CAB84]/60 rounded-full m-8 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-white bg-black/40 px-3 py-1 rounded-full backdrop-blur-xs">
+                        Center face in circle
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3">
+                    <Button
+                      onClick={handleEnrollCapture}
+                      disabled={isProcessing || enrollMutation.isPending}
+                      className="neu-button-primary text-xs font-bold h-10 px-6 flex items-center gap-2"
+                    >
+                      <ScanFace className={`h-4 w-4 ${isProcessing ? "animate-spin" : ""}`} />
+                      {isProcessing ? "Extracting Face Descriptor…" : enrollMutation.isPending ? "Saving Enrollment…" : "Capture & Enroll Face ID"}
+                    </Button>
+                    <Button
+                      onClick={stopCamera}
+                      variant="ghost"
+                      className="text-xs font-bold text-[#5C6B44] hover:text-[#364322]"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {cameraError && (
+            <p className="text-xs font-bold text-[#D9534F] flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4" /> {cameraError}
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+

@@ -19,6 +19,15 @@ import {
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _migrationDone = false;
+
+async function ensureColumnsExist(db: ReturnType<typeof drizzle>) {
+  if (_migrationDone) return;
+  _migrationDone = true;
+  try { await db.execute(sql`ALTER TABLE users ADD COLUMN faceDescriptor TEXT NULL`); } catch {}
+  try { await db.execute(sql`ALTER TABLE users ADD COLUMN faceConsentGiven TINYINT(1) DEFAULT 0`); } catch {}
+  try { await db.execute(sql`ALTER TABLE users ADD COLUMN faceEnrolledAt DATETIME NULL`); } catch {}
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -28,6 +37,9 @@ export async function getDb() {
       console.warn("[Database] Failed to initialize:", error);
       _db = null;
     }
+  }
+  if (_db && !_migrationDone) {
+    await ensureColumnsExist(_db);
   }
   return _db;
 }

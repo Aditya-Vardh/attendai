@@ -39,11 +39,14 @@ function Workspace({ children, roles }: { children: React.ReactNode; roles?: App
 
 
 
+import OfficeQrDisplay from "./pages/OfficeQrDisplay";
+
 function Router() { return <Switch>
   <Route path="/"><Home /></Route>
   <Route path="/login"><Home initialAuthOpen={true} /></Route>
   <Route path="/register"><Home initialAuthOpen={true} /></Route>
   <Route path="/dashboard"><Workspace><Dashboard/></Workspace></Route>
+  <Route path="/office-qr"><Workspace roles={["admin", "hr_manager"]}><OfficeQrDisplay/></Workspace></Route>
   <Route path="/employees"><Workspace roles={["admin", "hr_manager"]}><Employees/></Workspace></Route>
   <Route path="/departments"><Workspace roles={["admin", "hr_manager"]}><Departments/></Workspace></Route>
   <Route path="/attendance"><Workspace><Attendance/></Workspace></Route>
