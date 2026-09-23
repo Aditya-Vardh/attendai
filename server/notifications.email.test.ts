@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 describe("AttendAI email provider configuration", () => {
-  it("authenticates against the configured Resend account without exposing the credential", async () => {
+  it.skipIf(!process.env.RESEND_API_KEY)("authenticates against the configured Resend account without exposing the credential", async () => {
     const apiKey = process.env.RESEND_API_KEY;
     const sender = process.env.RESEND_FROM_EMAIL;
 

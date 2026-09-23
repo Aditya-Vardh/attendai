@@ -31,4 +31,13 @@ describe("detectAttendanceSignals", () => {
     expect(signals).toHaveLength(1);
     expect(signals[0]).toMatchObject({ ruleCode: "sudden_absence", severity: "medium", confidencePercent: 84 });
   });
+
+  it("returns no signals for an employee with standard full-day attendance", () => {
+    const signals = detectAttendanceSignals({ employeeId: 10, departmentId: 1, employeeName: "Alex Taylor", startDate: "2026-08-01", endDate: "2026-08-05", records: [
+      { workDate: "2026-08-01", status: "present", checkOutAt: new Date(), workMinutes: 480 },
+      { workDate: "2026-08-02", status: "present", checkOutAt: new Date(), workMinutes: 480 },
+      { workDate: "2026-08-03", status: "present", checkOutAt: new Date(), workMinutes: 480 },
+    ] });
+    expect(signals).toHaveLength(0);
+  });
 });

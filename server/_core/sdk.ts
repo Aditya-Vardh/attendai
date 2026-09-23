@@ -335,7 +335,7 @@ function buildCronUser(
   return {
     id: -1,
     openId: userInfo.openId,
-    name: userInfo.name || "Manus Scheduled Task",
+    name: userInfo.name || "AttendAI Scheduled Task",
     email: null,
     loginMethod: null,
     role: "employee",
