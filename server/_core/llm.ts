@@ -219,6 +219,7 @@ const resolveApiUrl = () =>
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
+    console.log(`[Debug LLM] process.env.OPENAI_API_KEY exists: ${Boolean(process.env.OPENAI_API_KEY)}`);
     throw new Error("OPENAI_API_KEY is not configured");
   }
 };
