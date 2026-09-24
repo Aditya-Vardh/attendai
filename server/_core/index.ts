@@ -4,7 +4,6 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { clerkMiddleware } from "@clerk/express";
-import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -39,7 +38,6 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   app.use(clerkMiddleware());
   registerStorageProxy(app);
-  registerOAuthRoutes(app);
   runSeedIfNeeded().catch(err => console.error("[Seed] Initial seed failed:", err));
   app.post("/api/scheduled/daily-attendance-digest", runDailyAttendanceDigest);
   // tRPC API

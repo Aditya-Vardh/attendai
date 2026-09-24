@@ -95,7 +95,7 @@ export function FaceCheckInWidget({ onSuccess }: FaceCheckInWidgetProps) {
     <div className="space-y-3 text-center">
       {/* Video Container — Always rendered to prevent null ref binding */}
       <div className={`relative overflow-hidden rounded-2xl bg-[#364322] aspect-video max-w-sm mx-auto flex items-center justify-center border-2 border-[#9CAB84] ${isCameraActive ? "block" : "hidden"}`}>
-        <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+        <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
         <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-[#9CAB84]/70 rounded-full m-4 flex items-center justify-center">
           <span className="text-[10px] font-bold text-white bg-black/50 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
             Center face in circle

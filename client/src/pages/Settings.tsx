@@ -267,10 +267,6 @@ function FaceIdEnrollmentSection({ user, refresh }: { user: any; refresh: () => 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" } });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
       setIsCameraActive(true);
     } catch (err: any) {
       setCameraError("Camera access denied or device not found: " + (err?.message ?? "Unknown error"));
@@ -282,12 +278,22 @@ function FaceIdEnrollmentSection({ user, refresh }: { user: any; refresh: () => 
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setIsCameraActive(false);
   };
 
   useEffect(() => {
     return () => stopCamera();
   }, []);
+
+  useEffect(() => {
+    if (isCameraActive && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch((err) => console.error("[Face ID] play error:", err));
+    }
+  }, [isCameraActive]);
 
   const handleEnrollCapture = async () => {
     if (!videoRef.current || !consentGiven) return;
@@ -400,7 +406,7 @@ function FaceIdEnrollmentSection({ user, refresh }: { user: any; refresh: () => 
               ) : (
                 <div className="space-y-3">
                   <div className="relative overflow-hidden rounded-2xl bg-[#364322] aspect-video max-w-md mx-auto flex items-center justify-center border-2 border-[#9CAB84]">
-                    <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
                     <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-[#9CAB84]/60 rounded-full m-8 flex items-center justify-center">
                       <span className="text-[10px] font-bold text-white bg-black/40 px-3 py-1 rounded-full backdrop-blur-xs">
                         Center face in circle

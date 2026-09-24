@@ -141,6 +141,21 @@ export const organizationRouter = router({
       .mutation(async ({ ctx, input }) => {
         const database = await db.getDb();
         if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database is unavailable." });
+
+        const targetUser = (await database.select().from(users).where(eq(users.id, input.userId)).limit(1))[0];
+        if (!targetUser) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+
+        if (targetUser.role === "admin" && input.role !== "admin") {
+          const adminCountResult = await database.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, "admin"));
+          const adminCount = Number(adminCountResult[0]?.count ?? 0);
+          if (adminCount <= 1) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Self-lockout safeguard: Cannot demote the only Administrator in the system.",
+            });
+          }
+        }
+
         await database.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
         await createAuditEvent({
           actorUserId: ctx.user.id,
