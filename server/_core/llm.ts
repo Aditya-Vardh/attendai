@@ -212,10 +212,15 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+const resolveApiUrl = () => {
+  if (!ENV.forgeApiUrl || ENV.forgeApiUrl.trim().length === 0) {
+    return "https://forge.manus.im/v1/chat/completions";
+  }
+  const base = ENV.forgeApiUrl.trim().replace(/\/$/, "");
+  if (base.endsWith("/chat/completions")) return base;
+  if (base.endsWith("/v1")) return `${base}/chat/completions`;
+  return `${base}/v1/chat/completions`;
+};
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
@@ -436,11 +441,18 @@ export type ModelsResponse = {
 export async function listLLMModels(): Promise<ModelsResponse> {
   assertApiKey();
 
-  const url = ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/models`
-    : "https://forge.manus.im/v1/models";
+  const getModelsUrl = () => {
+    if (!ENV.forgeApiUrl || ENV.forgeApiUrl.trim().length === 0) {
+      return "https://forge.manus.im/v1/models";
+    }
+    const base = ENV.forgeApiUrl.trim().replace(/\/$/, "");
+    if (base.endsWith("/models")) return base;
+    if (base.endsWith("/chat/completions")) return base.replace(/\/chat\/completions$/, "/models");
+    if (base.endsWith("/v1")) return `${base}/models`;
+    return `${base}/v1/models`;
+  };
 
-  const response = await fetchWithBackoff(url, {
+  const response = await fetchWithBackoff(getModelsUrl(), {
     headers: { authorization: `Bearer ${ENV.forgeApiKey}` },
   });
 

@@ -2,13 +2,14 @@ import { and, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { attendanceAnomalies, attendanceRecords, copilotConversations, copilotMessages, departments, employees, leaveRequests } from "../../drizzle/schema";
 import * as db from "../db";
+import { ENV } from "../_core/env";
 import { invokeLLM, type Tool } from "../_core/llm";
 import type { AppRole } from "../_core/trpc";
 import { todayIso } from "./common";
 import { deliverToRole } from "./notifications";
 import { detectAttendanceSignals, type AttendanceSignal } from "./anomalyRules";
 
-const COPILOT_MODEL = "claude-haiku-4-5";
+const getCopilotModel = () => ENV.llmModel;
 type Actor = { id: number; role: AppRole; name: string | null; email: string | null };
 type CopilotToolResult = { name: string; data: unknown };
 
@@ -77,7 +78,7 @@ export async function runCopilot(actor: Actor, message: string, conversationId?:
   if (!conversation) { const created = await database.insert(copilotConversations).values({ userId: actor.id, title: message.slice(0, 120) }); const id = Number(created[0].insertId); conversation = (await database.select().from(copilotConversations).where(eq(copilotConversations.id, id)).limit(1))[0]; }
   await database.insert(copilotMessages).values({ conversationId: conversation!.id, role: "user", content: message });
   const system = `You are AttendAI Workforce Copilot. You answer only from approved AttendAI tools, clearly identify the scope of data, preserve employee privacy, and never invent records. The signed-in user's role is ${actor.role}. You are read-only: do not claim to execute changes, approvals, deletions, or notifications. For sensitive actions, explain that an authorized user must use the confirmed workflow in the application.`;
-  const first = await invokeLLM({ model: COPILOT_MODEL, messages: [{ role: "system", content: system }, { role: "user", content: message }], tools, toolChoice: "auto", maxTokens: 1000 });
+  const first = await invokeLLM({ model: getCopilotModel(), messages: [{ role: "system", content: system }, { role: "user", content: message }], tools, toolChoice: "auto", maxTokens: 1000 });
   const choice = first.choices[0]?.message; const calls = choice?.tool_calls ?? [];
   let answer = typeof choice?.content === "string" ? choice.content : ""; const toolResults: CopilotToolResult[] = [];
   if (calls.length) {
@@ -86,7 +87,7 @@ export async function runCopilot(actor: Actor, message: string, conversationId?:
       toolResults.push(await executeCopilotTool(actor, call.function.name, args));
     }
     const evidence = toolResults.map(result => `Tool ${result.name} returned:\n${JSON.stringify(result.data)}`).join("\n\n");
-    const final = await invokeLLM({ model: COPILOT_MODEL, messages: [{ role: "system", content: `${system}\nCompose a concise, practical answer based only on the following tool results. If data is empty, say so plainly.\n\n${evidence}` }, { role: "user", content: message }], toolChoice: "none", maxTokens: 1000 });
+    const final = await invokeLLM({ model: getCopilotModel(), messages: [{ role: "system", content: `${system}\nCompose a concise, practical answer based only on the following tool results. If data is empty, say so plainly.\n\n${evidence}` }, { role: "user", content: message }], toolChoice: "none", maxTokens: 1000 });
     answer = typeof final.choices[0]?.message.content === "string" ? final.choices[0].message.content : "I could not compose a response from the available workforce data.";
   }
   if (!answer) answer = "I need a more specific workforce question to help.";
@@ -122,7 +123,7 @@ export async function findAttendanceCandidates() {
 }
 
 async function explainCandidate(candidate: Candidate) {
-  const response = await invokeLLM({ model: COPILOT_MODEL, messages: [{ role: "system", content: "You are AttendAI's HR anomaly explainer. Return plain text only: a concise, factual natural-language explanation based only on the supplied structured attendance evidence. Do not use Markdown, diagnose health, speculate on personal causes, or recommend disciplinary action." }, { role: "user", content: JSON.stringify(candidate) }], maxTokens: 280 });
+  const response = await invokeLLM({ model: getCopilotModel(), messages: [{ role: "system", content: "You are AttendAI's HR anomaly explainer. Return plain text only: a concise, factual natural-language explanation based only on the supplied structured attendance evidence. Do not use Markdown, diagnose health, speculate on personal causes, or recommend disciplinary action." }, { role: "user", content: JSON.stringify(candidate) }], maxTokens: 280 });
   const content = response.choices[0]?.message.content;
   const text = typeof content === "string" ? content : Array.isArray(content) ? content.filter(part => part.type === "text").map(part => part.text).join("\n") : "";
   if (!text.trim()) throw new Error("The AI explanation was empty.");

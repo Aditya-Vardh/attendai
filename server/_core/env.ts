@@ -11,5 +11,8 @@ export const ENV = {
   get forgeApiKey() {
     return process.env.OPENAI_API_KEY || process.env.BUILT_IN_FORGE_API_KEY || "";
   },
+  get llmModel() {
+    return process.env.LLM_MODEL || "openai/gpt-oss-120b";
+  },
 };
 
